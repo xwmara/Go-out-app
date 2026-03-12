@@ -1,5 +1,13 @@
-const Register = () => {
-  return <h1>Register</h1>;
-};
+import AuthLayout from "../components/layout/AuthLayout";
+import RegisterForm from "../features/auth/components/RegisterForm";
 
-export default Register;
+export default function Register() {
+  return (
+    <AuthLayout
+      title="Creează un cont"
+      subtitle="Înregistrează-te ca utilizator sau organizer"
+    >
+      <RegisterForm />
+    </AuthLayout>
+  );
+}
