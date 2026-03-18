@@ -18,18 +18,18 @@ export default function AuthLayout({
           <div>
             <h1 className="text-3xl font-bold tracking-tight">GetOut</h1>
             <p className="mt-3 max-w-md text-slate-300">
-              Platforma ta pentru evenimente artistice, bilete, organizare și experiențe memorabile.
+              Platforma ta pentru evenimente artistice, bilete, organizare si experiente memorabile.
             </p>
           </div>
 
           <div>
             <h2 className="text-4xl font-bold leading-tight">
-              Descoperă evenimente.
+              Descopera evenimente.
               <br />
-              Creează experiențe.
+              Creeaza experiente.
             </h2>
-            <p className="mt-4 max-w-lg text-slate-300 text-lg">
-              Intră în cont pentru a cumpăra bilete, salva favorite sau pentru a administra
+            <p className="mt-4 max-w-lg text-lg text-slate-300">
+              Intra in cont pentru a cumpara bilete, salva favorite sau pentru a administra
               evenimentele tale ca organizer.
             </p>
           </div>

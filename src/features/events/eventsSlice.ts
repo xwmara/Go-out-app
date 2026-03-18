@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { mockEvents } from "./mockEvents";
-import type { EventItem, EventStatus } from "./eventTypes";
+import type { EventItem, EventStatus, EventTicketType } from "./eventTypes";
 
 interface EventsState {
   items: EventItem[];
@@ -19,6 +19,9 @@ interface CreateEventPayload {
   date: string;
   description: string;
   organizerId?: string;
+  imageUrl?: string;
+  performers?: string[];
+  ticketTypes: EventTicketType[];
 }
 
 interface UpdateEventPayload {
@@ -40,6 +43,7 @@ const eventsSlice = createSlice({
         id: crypto.randomUUID(),
         status: "draft",
         createdAt: new Date().toISOString(),
+        ticketPrice: action.payload.ticketTypes[0]?.price,
         ...action.payload,
       };
 

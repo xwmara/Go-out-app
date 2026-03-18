@@ -29,7 +29,7 @@ export default function OrganizerDashboard() {
 
         <Link
           to="/organizer/events/create"
-          className="rounded-xl bg-slate-900 px-5 py-3 font-medium text-white hover:bg-slate-800"
+          className="rounded-xl bg-[linear-gradient(135deg,#7c3aed,#111827)] px-5 py-3 font-medium text-white shadow-lg shadow-violet-200 transition hover:opacity-95"
         >
           Create Event
         </Link>
@@ -54,7 +54,7 @@ export default function OrganizerDashboard() {
 
           <Link
             to="/organizer/events"
-            className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+            className="text-sm font-medium text-violet-600 hover:text-violet-700"
           >
             Vezi toate
           </Link>

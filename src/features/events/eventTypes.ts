@@ -1,5 +1,11 @@
 export type EventStatus = "draft" | "published";
 
+export interface EventTicketType {
+  id: string;
+  name: string;
+  price: number;
+}
+
 export interface EventItem {
   id: string;
   title: string;
@@ -12,4 +18,9 @@ export interface EventItem {
   status: EventStatus;
   organizerId?: string;
   createdAt: string;
+  ticketPrice?: number;
+  availableTickets?: number;
+  imageUrl?: string;
+  performers?: string[];
+  ticketTypes?: EventTicketType[];
 }

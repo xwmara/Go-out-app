@@ -9,7 +9,7 @@ export default function OrganizerLayout() {
 
   const navClass = ({ isActive }: { isActive: boolean }) =>
     isActive
-      ? "rounded-lg bg-slate-900 px-3 py-2 text-white"
+      ? "rounded-lg bg-[linear-gradient(135deg,#7c3aed,#111827)] px-3 py-2 text-white shadow-lg shadow-violet-200"
       : "rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100";
 
   return (
@@ -44,7 +44,7 @@ export default function OrganizerLayout() {
 
           <button
             onClick={() => dispatch(logout())}
-            className="mt-8 w-full rounded-xl bg-slate-900 px-4 py-3 text-white hover:bg-slate-800"
+            className="mt-8 w-full rounded-xl bg-[linear-gradient(135deg,#7c3aed,#111827)] px-4 py-3 text-white shadow-lg shadow-violet-200 transition hover:opacity-95"
           >
             Logout
           </button>

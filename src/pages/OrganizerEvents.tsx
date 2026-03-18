@@ -19,7 +19,7 @@ export default function OrganizerEvents() {
 
         <Link
           to="/organizer/events/create"
-          className="rounded-xl bg-slate-900 px-5 py-3 font-medium text-white hover:bg-slate-800"
+          className="rounded-xl bg-[linear-gradient(135deg,#7c3aed,#111827)] px-5 py-3 font-medium text-white shadow-lg shadow-violet-200 transition hover:opacity-95"
         >
           Create Event
         </Link>
@@ -65,7 +65,7 @@ export default function OrganizerEvents() {
                       onClick={() =>
                         dispatch(setEventStatus({ id: event.id, status: "published" }))
                       }
-                      className="rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800"
+                      className="rounded-lg bg-[linear-gradient(135deg,#7c3aed,#111827)] px-4 py-2 text-sm text-white shadow-lg shadow-violet-200 transition hover:opacity-95"
                     >
                       Publish
                     </button>

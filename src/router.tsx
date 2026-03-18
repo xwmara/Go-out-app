@@ -16,6 +16,8 @@ import CreateEvent from "./pages/CreateEvent";
 import EditEvent from "./pages/EditEvent";
 import AdminDashboard from "./pages/AdminDashboard";
 import MyTickets from "./pages/MyTickets";
+import Profile from "./pages/Profile";
+import Search from "./pages/Search";
 
 export const router = createBrowserRouter([
   {
@@ -32,6 +34,23 @@ export const router = createBrowserRouter([
       {
         path: "/events/:id",
         element: <EventDetails />,
+      },
+      {
+        element: <ProtectedRoute allowedRoles={["client"]} />,
+        children: [
+          {
+            path: "/my-tickets",
+            element: <MyTickets />,
+          },
+          {
+            path: "/profile",
+            element: <Profile />,
+          },
+          {
+            path: "/search",
+            element: <Search />,
+          },
+        ],
       },
     ],
   },
@@ -74,10 +93,6 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  {
-  path: "/my-tickets",
-  element: <MyTickets />,
-},
   {
     element: <ProtectedRoute allowedRoles={["admin"]} />,
     children: [

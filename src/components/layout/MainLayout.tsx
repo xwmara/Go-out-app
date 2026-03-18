@@ -40,20 +40,28 @@ export default function MainLayout() {
             {isAuthenticated && currentUser ? (
               <>
                 {currentUser.role === "client" ? (
-  <Link to="/my-tickets" className="text-slate-600 hover:text-slate-900">
-    Biletele mele
-  </Link>
-) : (
-  <Link
-    to={getRedirectPathByRole(currentUser.role)}
-    className="text-slate-600 hover:text-slate-900"
-  >
-    Dashboard
-  </Link>
-)}
+                  <>
+                    <NavLink to="/search" className={navClass}>
+                      Search
+                    </NavLink>
+                    <NavLink to="/my-tickets" className={navClass}>
+                      Biletele mele
+                    </NavLink>
+                    <NavLink to="/profile" className={navClass}>
+                      Profilul meu
+                    </NavLink>
+                  </>
+                ) : (
+                  <Link
+                    to={getRedirectPathByRole(currentUser.role)}
+                    className="text-slate-600 hover:text-slate-900"
+                  >
+                    Dashboard
+                  </Link>
+                )}
                 <button
                   onClick={handleLogout}
-                  className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800"
+                  className="rounded-lg bg-[linear-gradient(135deg,#7c3aed,#111827)] px-4 py-2 text-white shadow-lg shadow-violet-200 transition hover:opacity-95"
                 >
                   Logout
                 </button>
@@ -65,7 +73,7 @@ export default function MainLayout() {
                 </Link>
                 <Link
                   to="/register"
-                  className="rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-800"
+                  className="rounded-lg bg-[linear-gradient(135deg,#7c3aed,#111827)] px-4 py-2 text-white shadow-lg shadow-violet-200 transition hover:opacity-95"
                 >
                   Register
                 </Link>
