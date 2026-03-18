@@ -1,39 +1,43 @@
-export type AuthRole = "client" | "organizer";
+import type { UserRole } from '../authTypes';
 
 interface RoleSelectorProps {
-  value: AuthRole;
-  onChange: (role: AuthRole) => void;
+  selectedRole: UserRole;
+  onChange: (role: UserRole) => void;
 }
 
 export default function RoleSelector({
-  value,
+  selectedRole,
   onChange,
 }: RoleSelectorProps) {
   return (
-    <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
-      <button
-        type="button"
-        onClick={() => onChange("client")}
-        className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-          value === "client"
-            ? "bg-slate-900 text-white shadow"
-            : "bg-transparent text-slate-600 hover:bg-slate-200"
-        }`}
-      >
-        Client
-      </button>
+    <div className="space-y-3">
+      <p className="text-sm font-medium text-gray-700">Alege rolul</p>
 
-      <button
-        type="button"
-        onClick={() => onChange("organizer")}
-        className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-          value === "organizer"
-            ? "bg-slate-900 text-white shadow"
-            : "bg-transparent text-slate-600 hover:bg-slate-200"
-        }`}
-      >
-        Organizer
-      </button>
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onClick={() => onChange('client')}
+          className={`rounded-xl border px-4 py-3 text-sm font-medium transition ${
+            selectedRole === 'client'
+              ? 'border-black bg-black text-white'
+              : 'border-gray-300 bg-white text-gray-700'
+          }`}
+        >
+          Client
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onChange('organizer')}
+          className={`rounded-xl border px-4 py-3 text-sm font-medium transition ${
+            selectedRole === 'organizer'
+              ? 'border-black bg-black text-white'
+              : 'border-gray-300 bg-white text-gray-700'
+          }`}
+        >
+          Organizer
+        </button>
+      </div>
     </div>
   );
 }

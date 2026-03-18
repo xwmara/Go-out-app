@@ -1,11 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import RoleSelector, { type AuthRole } from "./RoleSelector";
+import RoleSelector from "./RoleSelector";
+import type { UserRole } from "../authTypes";
+import { useAppDispatch, useAppSelector } from "../../../app/store/hook";
+import { clearAuthError, loginUser } from "../authSlice";
+import {
+  selectAuthError,
+  selectAuthStatus,
+  selectIsAuthenticated,
+  selectUserRole,
+} from "../authSelectors";
+import { getRedirectPathByRole } from "../authUtils";
 
 export default function LoginForm() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
-  const [role, setRole] = useState<AuthRole>("client");
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const status = useAppSelector(selectAuthStatus);
+  const authError = useAppSelector(selectAuthError);
+  const userRole = useAppSelector(selectUserRole);
+
+  const [role, setRole] = useState<UserRole>("client");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -13,6 +30,18 @@ export default function LoginForm() {
     email?: string;
     password?: string;
   }>({});
+
+  useEffect(() => {
+    if (isAuthenticated && userRole) {
+      navigate(getRedirectPathByRole(userRole), { replace: true });
+    }
+  }, [isAuthenticated, userRole, navigate]);
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearAuthError());
+    };
+  }, [dispatch]);
 
   const validate = () => {
     const newErrors: {
@@ -34,23 +63,25 @@ export default function LoginForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    dispatch(clearAuthError());
 
     if (!validate()) return;
 
-    console.log("Login payload:", { email, password, role });
-
-    if (role === "organizer") {
-      navigate("/dashboard");
-    } else {
-      navigate("/");
-    }
+    dispatch(
+      loginUser({
+        email,
+        password,
+        role,
+      })
+    );
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <RoleSelector value={role} onChange={setRole} />
+      <RoleSelector selectedRole={role} onChange={setRole} />
 
       <div>
         <label htmlFor="email" className="mb-2 block text-sm font-medium text-slate-700">
@@ -82,6 +113,10 @@ export default function LoginForm() {
         {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
       </div>
 
+      {authError && (
+        <p className="text-sm text-red-500">{authError}</p>
+      )}
+
       <div className="flex items-center justify-between text-sm">
         <button type="button" className="text-slate-500 hover:text-slate-900">
           Ai uitat parola?
@@ -94,9 +129,10 @@ export default function LoginForm() {
 
       <button
         type="submit"
-        className="w-full rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-800"
+        disabled={status === "loading"}
+        className="w-full rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
       >
-        Conectează-te
+        {status === "loading" ? "Se conectează..." : "Conectează-te"}
       </button>
     </form>
   );

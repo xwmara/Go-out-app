@@ -5,7 +5,7 @@ export default function Login() {
   return (
     <AuthLayout
       title="Bine ai revenit"
-      subtitle="Conectează-te pentru a continua în platforma GoOut"
+      subtitle="Conectează-te pentru a descoperi sau administra evenimente."
     >
       <LoginForm />
     </AuthLayout>

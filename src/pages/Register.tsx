@@ -5,7 +5,7 @@ export default function Register() {
   return (
     <AuthLayout
       title="Creează un cont"
-      subtitle="Înregistrează-te ca utilizator sau organizer"
+      subtitle="Intră în platformă ca participant sau organizator."
     >
       <RegisterForm />
     </AuthLayout>

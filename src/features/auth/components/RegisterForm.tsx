@@ -1,11 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import RoleSelector, { type AuthRole } from "./RoleSelector";
+import RoleSelector from "./RoleSelector";
+import type { UserRole } from "../authTypes";
+import { useAppDispatch, useAppSelector } from "../../../app/store/hook";
+import { clearAuthError, registerUser } from "../authSlice";
+import {
+  selectAuthError,
+  selectAuthStatus,
+  selectIsAuthenticated,
+  selectUserRole,
+} from "../authSelectors";
+import { getRedirectPathByRole } from "../authUtils";
 
 export default function RegisterForm() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
-  const [role, setRole] = useState<AuthRole>("client");
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const status = useAppSelector(selectAuthStatus);
+  const authError = useAppSelector(selectAuthError);
+  const userRole = useAppSelector(selectUserRole);
+
+  const [role, setRole] = useState<UserRole>("client");
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -20,6 +37,18 @@ export default function RegisterForm() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    if (isAuthenticated && userRole) {
+      navigate(getRedirectPathByRole(userRole), { replace: true });
+    }
+  }, [isAuthenticated, userRole, navigate]);
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearAuthError());
+    };
+  }, [dispatch]);
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
@@ -29,9 +58,15 @@ export default function RegisterForm() {
     }
 
     if (role === "organizer") {
-      if (!organizerName.trim()) newErrors.organizerName = "Numele organizatorului este obligatoriu.";
-      if (!contactName.trim()) newErrors.contactName = "Persoana de contact este obligatorie.";
-      if (!phone.trim()) newErrors.phone = "Telefonul este obligatoriu.";
+      if (!organizerName.trim()) {
+        newErrors.organizerName = "Numele organizatorului este obligatoriu.";
+      }
+      if (!contactName.trim()) {
+        newErrors.contactName = "Persoana de contact este obligatorie.";
+      }
+      if (!phone.trim()) {
+        newErrors.phone = "Telefonul este obligatoriu.";
+      }
     }
 
     if (!email.trim()) {
@@ -60,46 +95,38 @@ export default function RegisterForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    dispatch(clearAuthError());
 
     if (!validate()) return;
 
-    const payload =
+    const name =
       role === "client"
-        ? {
-            role,
-            firstName,
-            lastName,
-            email,
-            password,
-          }
-        : {
-            role,
-            organizerName,
-            contactName,
-            phone,
-            email,
-            password,
-          };
+        ? `${firstName.trim()} ${lastName.trim()}`.trim()
+        : organizerName.trim();
 
-    console.log("Register payload:", payload);
-
-    if (role === "organizer") {
-      navigate("/dashboard");
-    } else {
-      navigate("/");
-    }
+    dispatch(
+      registerUser({
+        name,
+        email,
+        password,
+        role,
+      })
+    );
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">    
-      <RoleSelector value={role} onChange={setRole} />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <RoleSelector selectedRole={role} onChange={setRole} />
 
       {role === "client" ? (
         <>
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Prenume</label>
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              Prenume
+            </label>
             <input
               type="text"
               value={firstName}
@@ -107,11 +134,15 @@ export default function RegisterForm() {
               className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
               placeholder="Prenume"
             />
-            {errors.firstName && <p className="mt-1 text-sm text-red-500">{errors.firstName}</p>}
+            {errors.firstName && (
+              <p className="mt-1 text-sm text-red-500">{errors.firstName}</p>
+            )}
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Nume</label>
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              Nume
+            </label>
             <input
               type="text"
               value={lastName}
@@ -119,13 +150,17 @@ export default function RegisterForm() {
               className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
               placeholder="Nume"
             />
-            {errors.lastName && <p className="mt-1 text-sm text-red-500">{errors.lastName}</p>}
+            {errors.lastName && (
+              <p className="mt-1 text-sm text-red-500">{errors.lastName}</p>
+            )}
           </div>
         </>
       ) : (
         <>
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Nume organizator / companie</label>
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              Nume organizator / companie
+            </label>
             <input
               type="text"
               value={organizerName}
@@ -139,7 +174,9 @@ export default function RegisterForm() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Persoană de contact</label>
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              Persoană de contact
+            </label>
             <input
               type="text"
               value={contactName}
@@ -153,7 +190,9 @@ export default function RegisterForm() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Telefon</label>
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              Telefon
+            </label>
             <input
               type="text"
               value={phone}
@@ -161,13 +200,17 @@ export default function RegisterForm() {
               className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
               placeholder="07xxxxxxxx"
             />
-            {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
+            {errors.phone && (
+              <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
+            )}
           </div>
         </>
       )}
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-700">Email</label>
+        <label className="mb-2 block text-sm font-medium text-slate-700">
+          Email
+        </label>
         <input
           type="email"
           value={email}
@@ -175,11 +218,15 @@ export default function RegisterForm() {
           className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
           placeholder="exemplu@email.com"
         />
-        {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
+        {errors.email && (
+          <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+        )}
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-700">Parolă</label>
+        <label className="mb-2 block text-sm font-medium text-slate-700">
+          Parolă
+        </label>
         <input
           type="password"
           value={password}
@@ -187,11 +234,15 @@ export default function RegisterForm() {
           className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
           placeholder="Minim 8 caractere"
         />
-        {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
+        {errors.password && (
+          <p className="mt-1 text-sm text-red-500">{errors.password}</p>
+        )}
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-700">Confirmă parola</label>
+        <label className="mb-2 block text-sm font-medium text-slate-700">
+          Confirmă parola
+        </label>
         <input
           type="password"
           value={confirmPassword}
@@ -213,8 +264,13 @@ export default function RegisterForm() {
         />
         <span>Accept termenii și condițiile platformei.</span>
       </label>
+
       {errors.acceptedTerms && (
         <p className="text-sm text-red-500">{errors.acceptedTerms}</p>
+      )}
+
+      {authError && (
+        <p className="text-sm text-red-500">{authError}</p>
       )}
 
       <div className="flex items-center justify-end text-sm">
@@ -225,9 +281,10 @@ export default function RegisterForm() {
 
       <button
         type="submit"
-        className="w-full rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-800"
+        disabled={status === "loading"}
+        className="w-full rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
       >
-        Creează cont
+        {status === "loading" ? "Se creează contul..." : "Creează cont"}
       </button>
     </form>
   );
