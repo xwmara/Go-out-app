@@ -7,6 +7,12 @@ export interface AuthUser {
   role: UserRole;
 }
 
+export interface AuthResponse {
+  message: string;
+  token: string;
+  user: AuthUser;
+}
+
 export type AuthStatus = 'idle' | 'loading' | 'authenticated' | 'error';
 
 export interface LoginPayload {
@@ -24,6 +30,7 @@ export interface RegisterPayload {
 
 export interface AuthState {
   user: AuthUser | null;
+  token: string | null;
   isAuthenticated: boolean;
   status: AuthStatus;
   error: string | null;

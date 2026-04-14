@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "http://localhost:5000/api", // legare backend
+  baseURL: "https://localhost:7021/api",
   headers: {
     "Content-Type": "application/json",
   },

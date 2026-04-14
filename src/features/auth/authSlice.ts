@@ -1,147 +1,152 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
+import axios from "axios";
 import type {
+  AuthResponse,
   AuthState,
   AuthUser,
   LoginPayload,
   RegisterPayload,
-} from './authTypes';
+} from "./authTypes";
+import { authService } from "./authService";
+
+const STORAGE_USER_KEY = "goout_user";
+const STORAGE_TOKEN_KEY = "token";
 
 const initialState: AuthState = {
   user: null,
+  token: null,
   isAuthenticated: false,
-  status: 'idle',
+  status: "idle",
   error: null,
 };
 
-const getMockNameFromEmail = (email: string) => {
-  const raw = email.split('@')[0];
-  return raw.charAt(0).toUpperCase() + raw.slice(1);
-};
-
-
 export const loginUser = createAsyncThunk<
-  AuthUser,
+  AuthResponse,
   LoginPayload,
   { rejectValue: string }
->('auth/loginUser', async (payload, thunkApi) => {
- const { email, password, role } = payload;
+>("auth/loginUser", async (payload, thunkApi) => {
+  try {
+    const response = await authService.login(payload);
 
-  await new Promise((resolve) => setTimeout(resolve, 700));
+    if (response.user.role !== payload.role) {
+      return thunkApi.rejectWithValue("Rolul selectat nu corespunde contului tau.");
+    }
 
-  if (!email || !password) {
-    return thunkApi.rejectWithValue('Email și parola sunt obligatorii.');
+    localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(response.user));
+    localStorage.setItem(STORAGE_TOKEN_KEY, response.token);
+
+    return response;
+  } catch (error) {
+    if (axios.isAxiosError<{ message?: string }>(error)) {
+      return thunkApi.rejectWithValue(
+        error.response?.data?.message ?? "Autentificarea a esuat."
+      );
+    }
+
+    return thunkApi.rejectWithValue("Autentificarea a esuat.");
   }
-
-  if (password.length < 6) {
-    return thunkApi.rejectWithValue('Parola trebuie să aibă minim 6 caractere.');
-  }
-
-  const mockUser: AuthUser = {
-    id: crypto.randomUUID(),
-    name: getMockNameFromEmail(email),
-    email,role
-    ,
-  };
-
-  localStorage.setItem('goout_user', JSON.stringify(mockUser));
-
-  return mockUser;
 });
 
 export const registerUser = createAsyncThunk<
-  AuthUser,
+  AuthResponse,
   RegisterPayload,
   { rejectValue: string }
->('auth/registerUser', async (payload, thunkApi) => {
-  const { name, email, password, role } = payload;
+>("auth/registerUser", async (payload, thunkApi) => {
+  try {
+    await authService.register(payload);
 
-  await new Promise((resolve) => setTimeout(resolve, 700));
+    const response = await authService.login({
+      email: payload.email,
+      password: payload.password,
+      role: payload.role,
+    });
 
-  if (!name || !email || !password || !role) {
-    return thunkApi.rejectWithValue('Toate câmpurile sunt obligatorii.');
+    localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(response.user));
+    localStorage.setItem(STORAGE_TOKEN_KEY, response.token);
+
+    return response;
+  } catch (error) {
+    if (axios.isAxiosError<{ message?: string }>(error)) {
+      return thunkApi.rejectWithValue(
+        error.response?.data?.message ?? "Inregistrarea a esuat."
+      );
+    }
+
+    return thunkApi.rejectWithValue("Inregistrarea a esuat.");
   }
-
-  if (password.length < 6) {
-    return thunkApi.rejectWithValue('Parola trebuie să aibă minim 6 caractere.');
-  }
-
-  const mockUser: AuthUser = {
-    id: crypto.randomUUID(),
-    name,
-    email,
-    role,
-  };
-
-  localStorage.setItem('goout_user', JSON.stringify(mockUser));
-
-  return mockUser;
 });
 
-const savedUser = localStorage.getItem('goout_user');
+const savedUser = localStorage.getItem(STORAGE_USER_KEY);
+const savedToken = localStorage.getItem(STORAGE_TOKEN_KEY);
 
 const preloadedUser: AuthUser | null = savedUser ? JSON.parse(savedUser) : null;
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState: {
     ...initialState,
+    token: savedToken,
     user: preloadedUser,
-    isAuthenticated: !!preloadedUser,
-    status: preloadedUser ? 'authenticated' : 'idle',
+    isAuthenticated: !!preloadedUser && !!savedToken,
+    status: preloadedUser && savedToken ? "authenticated" : "idle",
   },
   reducers: {
     logout: (state) => {
       state.user = null;
+      state.token = null;
       state.isAuthenticated = false;
-      state.status = 'idle';
+      state.status = "idle";
       state.error = null;
-      localStorage.removeItem('goout_user');
+      localStorage.removeItem(STORAGE_USER_KEY);
+      localStorage.removeItem(STORAGE_TOKEN_KEY);
     },
     clearAuthError: (state) => {
       state.error = null;
-      if (state.status === 'error') {
-        state.status = 'idle';
+      if (state.status === "error") {
+        state.status = "idle";
       }
     },
     setMockUser: (state, action: PayloadAction<AuthUser>) => {
       state.user = action.payload;
+      state.token = null;
       state.isAuthenticated = true;
-      state.status = 'authenticated';
+      state.status = "authenticated";
       state.error = null;
-      localStorage.setItem('goout_user', JSON.stringify(action.payload));
+      localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(action.payload));
     },
   },
   extraReducers: (builder) => {
     builder
       .addCase(loginUser.pending, (state) => {
-        state.status = 'loading';
+        state.status = "loading";
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        state.status = 'authenticated';
-        state.user = action.payload;
+        state.status = "authenticated";
+        state.user = action.payload.user;
+        state.token = action.payload.token;
         state.isAuthenticated = true;
         state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
-        state.status = 'error';
-        state.error = action.payload || 'Login eșuat.';
+        state.status = "error";
+        state.error = action.payload || "Login esuat.";
       })
-
       .addCase(registerUser.pending, (state) => {
-        state.status = 'loading';
+        state.status = "loading";
         state.error = null;
       })
       .addCase(registerUser.fulfilled, (state, action) => {
-        state.status = 'authenticated';
-        state.user = action.payload;
+        state.status = "authenticated";
+        state.user = action.payload.user;
+        state.token = action.payload.token;
         state.isAuthenticated = true;
         state.error = null;
       })
       .addCase(registerUser.rejected, (state, action) => {
-        state.status = 'error';
-        state.error = action.payload || 'Înregistrare eșuată.';
+        state.status = "error";
+        state.error = action.payload || "Inregistrare esuata.";
       });
   },
 });
