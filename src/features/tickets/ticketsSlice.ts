@@ -1,4 +1,6 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axios from "axios";
+import { api } from "../../services/api";
 
 export interface TicketItem {
   id: string;
@@ -13,6 +15,11 @@ export interface TicketItem {
   unitPrice: number;
   totalPrice: number;
   purchasedAt: string;
+  ticketCode: string;
+  qrCodeValue: string;
+  qrCodeUrl: string;
+  invoiceNumber: string;
+  invoiceUrl: string;
 }
 
 interface PurchaseTicketPayload {
@@ -29,47 +36,83 @@ interface PurchaseTicketPayload {
 
 interface TicketsState {
   items: TicketItem[];
+  status: "idle" | "loading" | "succeeded" | "error";
+  error: string | null;
 }
 
-const loadInitialTickets = (): TicketItem[] => {
-  const raw = localStorage.getItem("goout_tickets");
-
-  if (!raw) {
-    return [];
-  }
-
-  try {
-    return JSON.parse(raw) as TicketItem[];
-  } catch {
-    return [];
-  }
-};
-
 const initialState: TicketsState = {
-  items: loadInitialTickets(),
+  items: [],
+  status: "idle",
+  error: null,
 };
 
-const persistTickets = (items: TicketItem[]) => {
-  localStorage.setItem("goout_tickets", JSON.stringify(items));
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (axios.isAxiosError<{ message?: string }>(error)) {
+    return error.response?.data?.message ?? fallback;
+  }
+
+  return fallback;
 };
+
+export const fetchMyTickets = createAsyncThunk<
+  TicketItem[],
+  void,
+  { rejectValue: string }
+>("tickets/fetchMyTickets", async (_, thunkApi) => {
+  try {
+    const { data } = await api.get<TicketItem[]>("/Tickets/me");
+    return data;
+  } catch (error) {
+    return thunkApi.rejectWithValue(getErrorMessage(error, "Nu am putut incarca biletele."));
+  }
+});
+
+export const purchaseTicket = createAsyncThunk<
+  TicketItem,
+  PurchaseTicketPayload,
+  { rejectValue: string }
+>("tickets/purchase", async (payload, thunkApi) => {
+  try {
+    const { data } = await api.post<TicketItem>("/Tickets/purchase", {
+      eventId: payload.eventId,
+      ticketTypeName: payload.ticketTypeName,
+      quantity: payload.quantity,
+      unitPrice: payload.unitPrice,
+    });
+    return data;
+  } catch (error) {
+    return thunkApi.rejectWithValue(getErrorMessage(error, "Nu am putut cumpara biletele."));
+  }
+});
 
 const ticketsSlice = createSlice({
   name: "tickets",
   initialState,
-  reducers: {
-    purchaseTicket: (state, action: PayloadAction<PurchaseTicketPayload>) => {
-      const ticket: TicketItem = {
-        id: crypto.randomUUID(),
-        totalPrice: action.payload.unitPrice * action.payload.quantity,
-        purchasedAt: new Date().toISOString(),
-        ...action.payload,
-      };
-
-      state.items.unshift(ticket);
-      persistTickets(state.items);
-    },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchMyTickets.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(fetchMyTickets.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.items = action.payload;
+      })
+      .addCase(fetchMyTickets.rejected, (state, action) => {
+        state.status = "error";
+        state.error = action.payload ?? "Nu am putut incarca biletele.";
+      })
+      .addCase(purchaseTicket.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(purchaseTicket.fulfilled, (state, action) => {
+        state.items.unshift(action.payload);
+      })
+      .addCase(purchaseTicket.rejected, (state, action) => {
+        state.error = action.payload ?? "Nu am putut cumpara biletele.";
+      });
   },
 });
 
-export const { purchaseTicket } = ticketsSlice.actions;
 export default ticketsSlice.reducer;

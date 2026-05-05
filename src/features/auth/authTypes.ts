@@ -28,6 +28,11 @@ export interface RegisterPayload {
   role: UserRole;
 }
 
+export interface UpdateProfilePayload {
+  name: string;
+  email: string;
+}
+
 export interface AuthState {
   user: AuthUser | null;
   token: string | null;

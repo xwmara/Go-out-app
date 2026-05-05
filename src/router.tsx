@@ -6,12 +6,13 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import PublicOnlyRoute from "./components/common/PublicOnlyRoute";
 
 import Home from "./pages/Home";
-import Events from "./pages/Events"
+import Events from "./pages/Events";
 import EventDetails from "./pages/EventDetails";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import OrganizerDashboard from "./pages/OrganizerDashboard";
 import OrganizerEvents from "./pages/OrganizerEvents";
+import OrganizerMarketing from "./pages/OrganizerMarketing";
 import CreateEvent from "./pages/CreateEvent";
 import EditEvent from "./pages/EditEvent";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -36,6 +37,10 @@ export const router = createBrowserRouter([
         element: <EventDetails />,
       },
       {
+        path: "/search",
+        element: <Search />,
+      },
+      {
         element: <ProtectedRoute allowedRoles={["client"]} />,
         children: [
           {
@@ -45,10 +50,6 @@ export const router = createBrowserRouter([
           {
             path: "/profile",
             element: <Profile />,
-          },
-          {
-            path: "/search",
-            element: <Search />,
           },
         ],
       },
@@ -80,6 +81,14 @@ export const router = createBrowserRouter([
           {
             path: "/organizer/events",
             element: <OrganizerEvents />,
+          },
+          {
+            path: "/organizer/marketing",
+            element: <OrganizerMarketing />,
+          },
+          {
+            path: "/organizer/profile",
+            element: <Profile />,
           },
           {
             path: "/organizer/events/create",

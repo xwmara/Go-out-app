@@ -7,6 +7,7 @@ import type {
   AuthUser,
   LoginPayload,
   RegisterPayload,
+  UpdateProfilePayload,
 } from "./authTypes";
 import { authService } from "./authService";
 
@@ -21,6 +22,14 @@ const initialState: AuthState = {
   error: null,
 };
 
+const persistUser = (user: AuthUser | null) => {
+  if (user) {
+    localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(user));
+  } else {
+    localStorage.removeItem(STORAGE_USER_KEY);
+  }
+};
+
 export const loginUser = createAsyncThunk<
   AuthResponse,
   LoginPayload,
@@ -33,7 +42,7 @@ export const loginUser = createAsyncThunk<
       return thunkApi.rejectWithValue("Rolul selectat nu corespunde contului tau.");
     }
 
-    localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(response.user));
+    persistUser(response.user);
     localStorage.setItem(STORAGE_TOKEN_KEY, response.token);
 
     return response;
@@ -62,7 +71,7 @@ export const registerUser = createAsyncThunk<
       role: payload.role,
     });
 
-    localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(response.user));
+    persistUser(response.user);
     localStorage.setItem(STORAGE_TOKEN_KEY, response.token);
 
     return response;
@@ -74,6 +83,26 @@ export const registerUser = createAsyncThunk<
     }
 
     return thunkApi.rejectWithValue("Inregistrarea a esuat.");
+  }
+});
+
+export const updateProfile = createAsyncThunk<
+  AuthUser,
+  UpdateProfilePayload,
+  { rejectValue: string }
+>("auth/updateProfile", async (payload, thunkApi) => {
+  try {
+    const user = await authService.updateProfile(payload);
+    persistUser(user);
+    return user;
+  } catch (error) {
+    if (axios.isAxiosError<{ message?: string }>(error)) {
+      return thunkApi.rejectWithValue(
+        error.response?.data?.message ?? "Actualizarea profilului a esuat."
+      );
+    }
+
+    return thunkApi.rejectWithValue("Actualizarea profilului a esuat.");
   }
 });
 
@@ -113,7 +142,7 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.status = "authenticated";
       state.error = null;
-      localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(action.payload));
+      persistUser(action.payload);
     },
   },
   extraReducers: (builder) => {
@@ -147,6 +176,20 @@ const authSlice = createSlice({
       .addCase(registerUser.rejected, (state, action) => {
         state.status = "error";
         state.error = action.payload || "Inregistrare esuata.";
+      })
+      .addCase(updateProfile.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.status = "authenticated";
+        state.user = action.payload;
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.status = "error";
+        state.error = action.payload || "Actualizarea profilului a esuat.";
       });
   },
 });

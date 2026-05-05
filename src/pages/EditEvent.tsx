@@ -4,331 +4,41 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../app/store/hook";
 import { romanianCities } from "../features/events/cities";
 import { selectAllEvents } from "../features/events/eventSelectors";
-import { updateEvent } from "../features/events/eventsSlice";
+import { fetchOrganizerEvents, updateEvent } from "../features/events/eventsSlice";
 import type { EventTicketType } from "../features/events/eventTypes";
 
-const createTicketType = (): EventTicketType => ({
-  id: crypto.randomUUID(),
-  name: "",
-  price: 0,
-});
-
-const primaryButtonClass =
-  "rounded-xl bg-[linear-gradient(135deg,#7c3aed,#111827)] px-5 py-3 font-medium text-white shadow-lg shadow-violet-200 transition hover:opacity-95";
+const createTicketType = (): EventTicketType => ({ id: crypto.randomUUID(), name: "", price: 0 });
+const primaryButtonClass = "rounded-xl bg-[linear-gradient(135deg,#7c3aed,#111827)] px-5 py-3 font-medium text-white shadow-lg shadow-violet-200 transition hover:opacity-95";
 
 export default function EditEvent() {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const event = useAppSelector((state) =>
-    selectAllEvents(state).find((item) => item.id === id),
-  );
+  const eventsStatus = useAppSelector((state) => state.events.status);
+  const event = useAppSelector((state) => selectAllEvents(state).find((item) => item.id === id));
+  const [title, setTitle] = useState(""); const [category, setCategory] = useState(""); const [city, setCity] = useState(""); const [venueName, setVenueName] = useState(""); const [venueAddress, setVenueAddress] = useState(""); const [date, setDate] = useState(""); const [description, setDescription] = useState(""); const [imageUrl, setImageUrl] = useState(""); const [performersInput, setPerformersInput] = useState(""); const [ticketTypes, setTicketTypes] = useState<EventTicketType[]>([createTicketType()]); const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
-  const [city, setCity] = useState("");
-  const [venueName, setVenueName] = useState("");
-  const [venueAddress, setVenueAddress] = useState("");
-  const [date, setDate] = useState("");
-  const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [performersInput, setPerformersInput] = useState("");
-  const [ticketTypes, setTicketTypes] = useState<EventTicketType[]>([createTicketType()]);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
+  useEffect(() => { void dispatch(fetchOrganizerEvents()); }, [dispatch]);
   useEffect(() => {
-    if (!event) {
-      return;
-    }
-
-    setTitle(event.title);
-    setCategory(event.category);
-    setCity(event.city);
-    setVenueName(event.venueName);
-    setVenueAddress(event.venueAddress);
-    setDate(event.date);
-    setDescription(event.description);
-    setImageUrl(event.imageUrl ?? "");
-    setPerformersInput(event.performers?.join(", ") ?? "");
-    setTicketTypes(
-      event.ticketTypes?.length
-        ? event.ticketTypes
-        : event.ticketPrice
-          ? [{ id: crypto.randomUUID(), name: "General Access", price: event.ticketPrice }]
-          : [createTicketType()],
-    );
+    if (!event) return;
+    setTitle(event.title); setCategory(event.category); setCity(event.city); setVenueName(event.venueName); setVenueAddress(event.venueAddress); setDate(event.date); setDescription(event.description); setImageUrl(event.imageUrl ?? ""); setPerformersInput(event.performers?.join(", ") ?? "");
+    setTicketTypes(event.ticketTypes?.length ? event.ticketTypes : event.ticketPrice ? [{ id: crypto.randomUUID(), name: "General Access", price: event.ticketPrice }] : [createTicketType()]);
   }, [event]);
 
-  const setPosterFile = (file?: File) => {
-    if (!file) {
-      return;
-    }
+  const setPosterFile = (file?: File) => { if (!file) return; const reader = new FileReader(); reader.onload = () => { if (typeof reader.result === "string") setImageUrl(reader.result); }; reader.readAsDataURL(file); };
+  const handlePosterChange = (e: ChangeEvent<HTMLInputElement>) => setPosterFile(e.target.files?.[0]);
+  const handlePosterDrop = (e: DragEvent<HTMLDivElement>) => { e.preventDefault(); setPosterFile(e.dataTransfer.files?.[0]); };
+  const updateTicketTypeField = (ticketTypeId: string, field: "name" | "price", value: string) => setTicketTypes((current) => current.map((ticketType) => ticketType.id === ticketTypeId ? { ...ticketType, [field]: field === "price" ? Number(value) : value } : ticketType));
+  const addTicketTypeField = () => setTicketTypes((current) => [...current, createTicketType()]);
+  const removeTicketTypeField = (ticketTypeId: string) => setTicketTypes((current) => current.length === 1 ? current : current.filter((ticketType) => ticketType.id !== ticketTypeId));
+  const validate = () => { const nextErrors: Record<string, string> = {}; if (!title.trim()) nextErrors.title = "Titlul este obligatoriu."; if (!category.trim()) nextErrors.category = "Categoria este obligatorie."; if (!city.trim()) nextErrors.city = "Orasul este obligatoriu."; if (!venueName.trim()) nextErrors.venueName = "Venue-ul este obligatoriu."; if (!venueAddress.trim()) nextErrors.venueAddress = "Adresa venue-ului este obligatorie."; if (!date.trim()) nextErrors.date = "Data este obligatorie."; if (!description.trim()) nextErrors.description = "Descrierea este obligatorie."; if (!imageUrl) nextErrors.imageUrl = "Afisul evenimentului este obligatoriu."; const hasValidTicketTypes = ticketTypes.every((ticketType) => ticketType.name.trim() && ticketType.price > 0); if (!hasValidTicketTypes) nextErrors.ticketTypes = "Completeaza toate tipurile de bilete cu nume si pret."; setErrors(nextErrors); return Object.keys(nextErrors).length === 0; };
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => { e.preventDefault(); if (!id || !event || !validate()) return; await dispatch(updateEvent({ id, data: { title, category, city, venueName, venueAddress, date, description, imageUrl, performers: performersInput.split(",").map((performer) => performer.trim()).filter(Boolean), ticketTypes, ticketPrice: ticketTypes[0]?.price } })).unwrap(); navigate("/organizer/events"); };
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        setImageUrl(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handlePosterChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setPosterFile(e.target.files?.[0]);
-  };
-
-  const handlePosterDrop = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setPosterFile(e.dataTransfer.files?.[0]);
-  };
-
-  const updateTicketType = (
-    ticketTypeId: string,
-    field: "name" | "price",
-    value: string,
-  ) => {
-    setTicketTypes((current) =>
-      current.map((ticketType) =>
-        ticketType.id === ticketTypeId
-          ? {
-              ...ticketType,
-              [field]: field === "price" ? Number(value) : value,
-            }
-          : ticketType,
-      ),
-    );
-  };
-
-  const addTicketTypeField = () => {
-    setTicketTypes((current) => [...current, createTicketType()]);
-  };
-
-  const removeTicketTypeField = (ticketTypeId: string) => {
-    setTicketTypes((current) =>
-      current.length === 1
-        ? current
-        : current.filter((ticketType) => ticketType.id !== ticketTypeId),
-    );
-  };
-
-  const validate = () => {
-    const nextErrors: Record<string, string> = {};
-
-    if (!title.trim()) nextErrors.title = "Titlul este obligatoriu.";
-    if (!category.trim()) nextErrors.category = "Categoria este obligatorie.";
-    if (!city.trim()) nextErrors.city = "Orasul este obligatoriu.";
-    if (!venueName.trim()) nextErrors.venueName = "Venue-ul este obligatoriu.";
-    if (!venueAddress.trim()) {
-      nextErrors.venueAddress = "Adresa venue-ului este obligatorie.";
-    }
-    if (!date.trim()) nextErrors.date = "Data este obligatorie.";
-    if (!description.trim()) {
-      nextErrors.description = "Descrierea este obligatorie.";
-    }
-    if (!imageUrl) {
-      nextErrors.imageUrl = "Afisul evenimentului este obligatoriu.";
-    }
-
-    const hasValidTicketTypes = ticketTypes.every(
-      (ticketType) => ticketType.name.trim() && ticketType.price > 0,
-    );
-
-    if (!hasValidTicketTypes) {
-      nextErrors.ticketTypes = "Completeaza toate tipurile de bilete cu nume si pret.";
-    }
-
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
-  };
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!id || !event || !validate()) {
-      return;
-    }
-
-    dispatch(
-      updateEvent({
-        id,
-        data: {
-          title,
-          category,
-          city,
-          venueName,
-          venueAddress,
-          date,
-          description,
-          imageUrl,
-          performers: performersInput
-            .split(",")
-            .map((performer) => performer.trim())
-            .filter(Boolean),
-          ticketTypes,
-          ticketPrice: ticketTypes[0]?.price,
-        },
-      }),
-    );
-
-    navigate("/organizer/events");
-  };
-
-  if (!event) {
-    return (
-      <div className="space-y-4">
-        <h1 className="text-3xl font-bold text-slate-900">Event not found</h1>
-        <p className="text-slate-600">
-          Evenimentul pe care incerci sa il editezi nu exista.
-        </p>
-        <Link to="/organizer/events" className={`inline-flex ${primaryButtonClass}`}>
-          Inapoi la evenimente
-        </Link>
-      </div>
-    );
-  }
+  if (!event && eventsStatus === "loading") return <div className="rounded-2xl bg-white p-6 shadow-sm">Se incarca evenimentul...</div>;
+  if (!event) return <div className="space-y-4"><h1 className="text-3xl font-bold text-slate-900">Event not found</h1><p className="text-slate-600">Evenimentul pe care incerci sa il editezi nu exista.</p><Link to="/organizer/events" className={`inline-flex ${primaryButtonClass}`}>Inapoi la evenimente</Link></div>;
 
   return (
-    <div className="max-w-4xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">Edit Event</h1>
-        <p className="mt-2 text-slate-600">
-          Actualizeaza detaliile evenimentului, afisul si structura de ticketing.
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl bg-white p-6 shadow-sm">
-        <div
-          onDrop={handlePosterDrop}
-          onDragOver={(e) => e.preventDefault()}
-          onClick={() => fileInputRef.current?.click()}
-          className="cursor-pointer rounded-2xl border-2 border-dashed border-violet-200 bg-violet-50/50 p-6 transition hover:border-violet-300"
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handlePosterChange}
-            className="hidden"
-          />
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-600">
-            Event poster
-          </p>
-          <p className="mt-2 text-slate-600">
-            Drag and drop pentru afis sau apasa ca sa schimbi imaginea.
-          </p>
-          {imageUrl ? (
-            <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-              <img src={imageUrl} alt="Poster preview" className="h-72 w-full object-cover" />
-            </div>
-          ) : null}
-          {errors.imageUrl ? <p className="mt-3 text-sm text-red-500">{errors.imageUrl}</p> : null}
-        </div>
-
-        <div className="grid gap-5 md:grid-cols-2">
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Titlu eveniment</label>
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
-            {errors.title && <p className="mt-1 text-sm text-red-500">{errors.title}</p>}
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Categorie</label>
-            <input type="text" value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
-            {errors.category && <p className="mt-1 text-sm text-red-500">{errors.category}</p>}
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Oras</label>
-            <select value={city} onChange={(e) => setCity(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400">
-              <option value="">Selecteaza un oras</option>
-              {romanianCities.map((cityOption) => (
-                <option key={cityOption} value={cityOption}>
-                  {cityOption}
-                </option>
-              ))}
-            </select>
-            {errors.city && <p className="mt-1 text-sm text-red-500">{errors.city}</p>}
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Data</label>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
-            {errors.date && <p className="mt-1 text-sm text-red-500">{errors.date}</p>}
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Venue</label>
-            <input type="text" value={venueName} onChange={(e) => setVenueName(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
-            {errors.venueName && <p className="mt-1 text-sm text-red-500">{errors.venueName}</p>}
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Adresa venue</label>
-            <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
-            {errors.venueAddress && <p className="mt-1 text-sm text-red-500">{errors.venueAddress}</p>}
-          </div>
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">Descriere</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
-          {errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">
-            Artisti / lineup
-          </label>
-          <input
-            type="text"
-            value={performersInput}
-            onChange={(e) => setPerformersInput(e.target.value)}
-            placeholder="Ex: Karla Noir, Nico V, Pulse District"
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400"
-          />
-          <p className="mt-2 text-sm text-slate-500">
-            Optional. Separa artistii prin virgula.
-          </p>
-        </div>
-
-        <div className="space-y-4 rounded-2xl border border-slate-200 p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-600">Ticket types</p>
-              <p className="mt-1 text-sm text-slate-500">Editeaza tipurile de bilete si pretul fiecaruia.</p>
-            </div>
-
-            <button type="button" onClick={addTicketTypeField} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-              Add ticket type
-            </button>
-          </div>
-
-          {ticketTypes.map((ticketType, index) => (
-            <div key={ticketType.id} className="grid gap-3 md:grid-cols-[1fr_180px_auto]">
-              <input type="text" value={ticketType.name} onChange={(e) => updateTicketType(ticketType.id, "name", e.target.value)} placeholder={`Tip bilet ${index + 1}`} className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
-              <input type="number" min="1" value={ticketType.price || ""} onChange={(e) => updateTicketType(ticketType.id, "price", e.target.value)} placeholder="Pret" className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
-              <button type="button" onClick={() => removeTicketTypeField(ticketType.id)} className="rounded-xl border border-slate-300 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                Remove
-              </button>
-            </div>
-          ))}
-
-          {errors.ticketTypes ? <p className="text-sm text-red-500">{errors.ticketTypes}</p> : null}
-        </div>
-
-        <div className="flex gap-3">
-          <button type="submit" className={primaryButtonClass}>
-            Save Changes
-          </button>
-          <Link
-            to="/organizer/events"
-            className="rounded-xl border border-slate-300 px-5 py-3 font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Cancel
-          </Link>
-        </div>
-      </form>
-    </div>
+    <div className="max-w-4xl space-y-6"><div><h1 className="text-3xl font-bold text-slate-900">Edit Event</h1><p className="mt-2 text-slate-600">Actualizeaza detaliile evenimentului, afisul si structura de ticketing.</p></div><form onSubmit={handleSubmit} className="space-y-5 rounded-2xl bg-white p-6 shadow-sm"><div onDrop={handlePosterDrop} onDragOver={(e) => e.preventDefault()} onClick={() => fileInputRef.current?.click()} className="cursor-pointer rounded-2xl border-2 border-dashed border-violet-200 bg-violet-50/50 p-6 transition hover:border-violet-300"><input ref={fileInputRef} type="file" accept="image/*" onChange={handlePosterChange} className="hidden" /><p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-600">Event poster</p><p className="mt-2 text-slate-600">Drag and drop pentru afis sau apasa ca sa schimbi imaginea.</p>{imageUrl ? <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white"><img src={imageUrl} alt="Poster preview" className="h-72 w-full object-cover" /></div> : null}{errors.imageUrl ? <p className="mt-3 text-sm text-red-500">{errors.imageUrl}</p> : null}</div><div className="grid gap-5 md:grid-cols-2"><div><label className="mb-2 block text-sm font-medium text-slate-700">Titlu eveniment</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />{errors.title && <p className="mt-1 text-sm text-red-500">{errors.title}</p>}</div><div><label className="mb-2 block text-sm font-medium text-slate-700">Categorie</label><input type="text" value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />{errors.category && <p className="mt-1 text-sm text-red-500">{errors.category}</p>}</div><div><label className="mb-2 block text-sm font-medium text-slate-700">Oras</label><select value={city} onChange={(e) => setCity(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400"><option value="">Selecteaza un oras</option>{romanianCities.map((cityOption) => (<option key={cityOption} value={cityOption}>{cityOption}</option>))}</select>{errors.city && <p className="mt-1 text-sm text-red-500">{errors.city}</p>}</div><div><label className="mb-2 block text-sm font-medium text-slate-700">Data</label><input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />{errors.date && <p className="mt-1 text-sm text-red-500">{errors.date}</p>}</div><div><label className="mb-2 block text-sm font-medium text-slate-700">Venue</label><input type="text" value={venueName} onChange={(e) => setVenueName(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />{errors.venueName && <p className="mt-1 text-sm text-red-500">{errors.venueName}</p>}</div><div><label className="mb-2 block text-sm font-medium text-slate-700">Adresa venue</label><input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />{errors.venueAddress && <p className="mt-1 text-sm text-red-500">{errors.venueAddress}</p>}</div></div><div><label className="mb-2 block text-sm font-medium text-slate-700">Descriere</label><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />{errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}</div><div><label className="mb-2 block text-sm font-medium text-slate-700">Artisti / lineup</label><input type="text" value={performersInput} onChange={(e) => setPerformersInput(e.target.value)} placeholder="Ex: Karla Noir, Nico V, Pulse District" className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" /><p className="mt-2 text-sm text-slate-500">Optional. Separa artistii prin virgula.</p></div><div className="space-y-4 rounded-2xl border border-slate-200 p-5"><div className="flex items-center justify-between"><div><p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-600">Ticket types</p><p className="mt-1 text-sm text-slate-500">Editeaza tipurile de bilete si pretul fiecaruia.</p></div><button type="button" onClick={addTicketTypeField} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Add ticket type</button></div>{ticketTypes.map((ticketType, index) => (<div key={ticketType.id} className="grid gap-3 md:grid-cols-[1fr_180px_auto]"><input type="text" value={ticketType.name} onChange={(e) => updateTicketTypeField(ticketType.id, "name", e.target.value)} placeholder={`Tip bilet ${index + 1}`} className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" /><input type="number" min="1" value={ticketType.price || ""} onChange={(e) => updateTicketTypeField(ticketType.id, "price", e.target.value)} placeholder="Pret" className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" /><button type="button" onClick={() => removeTicketTypeField(ticketType.id)} className="rounded-xl border border-slate-300 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">Remove</button></div>))}{errors.ticketTypes ? <p className="text-sm text-red-500">{errors.ticketTypes}</p> : null}</div><div className="flex gap-3"><button type="submit" className={primaryButtonClass}>Save Changes</button><Link to="/organizer/events" className="rounded-xl border border-slate-300 px-5 py-3 font-medium text-slate-700 hover:bg-slate-50">Cancel</Link></div></form></div>
   );
 }

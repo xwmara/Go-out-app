@@ -4,6 +4,7 @@ import type {
   AuthUser,
   LoginPayload,
   RegisterPayload,
+  UpdateProfilePayload,
   UserRole,
 } from "./authTypes";
 
@@ -30,6 +31,11 @@ interface BackendRegisterRequest {
 interface BackendLoginRequest {
   email: string;
   password: string;
+}
+
+interface BackendProfileRequest {
+  fullName: string;
+  email: string;
 }
 
 const normalizeRole = (role: string): UserRole => {
@@ -77,5 +83,20 @@ export const authService = {
       token: data.token,
       user: mapBackendUser(data.user),
     };
+  },
+
+  async getCurrentUser(): Promise<AuthUser> {
+    const { data } = await api.get<BackendAuthUser>("/Auth/me");
+    return mapBackendUser(data);
+  },
+
+  async updateProfile(payload: UpdateProfilePayload): Promise<AuthUser> {
+    const request: BackendProfileRequest = {
+      fullName: payload.name,
+      email: payload.email,
+    };
+
+    const { data } = await api.put<BackendAuthUser>("/Auth/me", request);
+    return mapBackendUser(data);
   },
 };

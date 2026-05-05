@@ -1,13 +1,18 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { mockEvents } from "./mockEvents";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axios from "axios";
+import { eventsService } from "./eventsService";
 import type { EventItem, EventStatus, EventTicketType } from "./eventTypes";
 
 interface EventsState {
   items: EventItem[];
+  status: "idle" | "loading" | "succeeded" | "error";
+  error: string | null;
 }
 
 const initialState: EventsState = {
-  items: mockEvents,
+  items: [],
+  status: "idle",
+  error: null,
 };
 
 interface CreateEventPayload {
@@ -22,6 +27,7 @@ interface CreateEventPayload {
   imageUrl?: string;
   performers?: string[];
   ticketTypes: EventTicketType[];
+  availableTickets?: number;
 }
 
 interface UpdateEventPayload {
@@ -34,37 +40,173 @@ interface SetEventStatusPayload {
   status: EventStatus;
 }
 
+const mergeItems = (existing: EventItem[], incoming: EventItem[]) => {
+  const map = new Map(existing.map((item) => [item.id, item]));
+
+  incoming.forEach((item) => {
+    map.set(item.id, item);
+  });
+
+  return [...map.values()].sort((a, b) =>
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
+};
+
+const upsertItem = (items: EventItem[], incoming: EventItem) => mergeItems(items, [incoming]);
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (axios.isAxiosError<{ message?: string }>(error)) {
+    return error.response?.data?.message ?? fallback;
+  }
+
+  return fallback;
+};
+
+export const fetchPublishedEvents = createAsyncThunk<
+  EventItem[],
+  void,
+  { rejectValue: string }
+>("events/fetchPublished", async (_, thunkApi) => {
+  try {
+    return await eventsService.getPublished();
+  } catch (error) {
+    return thunkApi.rejectWithValue(getErrorMessage(error, "Nu am putut incarca evenimentele."));
+  }
+});
+
+export const fetchOrganizerEvents = createAsyncThunk<
+  EventItem[],
+  void,
+  { rejectValue: string }
+>("events/fetchOrganizer", async (_, thunkApi) => {
+  try {
+    return await eventsService.getOrganizerEvents();
+  } catch (error) {
+    return thunkApi.rejectWithValue(getErrorMessage(error, "Nu am putut incarca evenimentele organizatorului."));
+  }
+});
+
+export const fetchEventById = createAsyncThunk<
+  EventItem,
+  string,
+  { rejectValue: string }
+>("events/fetchById", async (id, thunkApi) => {
+  try {
+    return await eventsService.getById(id);
+  } catch (error) {
+    return thunkApi.rejectWithValue(getErrorMessage(error, "Nu am putut incarca evenimentul."));
+  }
+});
+
+export const addEvent = createAsyncThunk<
+  EventItem,
+  CreateEventPayload,
+  { rejectValue: string }
+>("events/create", async (payload, thunkApi) => {
+  try {
+    return await eventsService.create(payload);
+  } catch (error) {
+    return thunkApi.rejectWithValue(getErrorMessage(error, "Nu am putut crea evenimentul."));
+  }
+});
+
+export const updateEvent = createAsyncThunk<
+  EventItem,
+  UpdateEventPayload,
+  { rejectValue: string }
+>("events/update", async (payload, thunkApi) => {
+  try {
+    return await eventsService.update(payload.id, payload.data);
+  } catch (error) {
+    return thunkApi.rejectWithValue(getErrorMessage(error, "Nu am putut actualiza evenimentul."));
+  }
+});
+
+export const setEventStatus = createAsyncThunk<
+  EventItem,
+  SetEventStatusPayload,
+  { rejectValue: string }
+>("events/setStatus", async (payload, thunkApi) => {
+  try {
+    return await eventsService.updateStatus(payload);
+  } catch (error) {
+    return thunkApi.rejectWithValue(getErrorMessage(error, "Nu am putut schimba statusul evenimentului."));
+  }
+});
+
 const eventsSlice = createSlice({
   name: "events",
   initialState,
-  reducers: {
-    addEvent: (state, action: PayloadAction<CreateEventPayload>) => {
-      const newEvent: EventItem = {
-        id: crypto.randomUUID(),
-        status: "draft",
-        createdAt: new Date().toISOString(),
-        ticketPrice: action.payload.ticketTypes[0]?.price,
-        ...action.payload,
-      };
-
-      state.items.unshift(newEvent);
-    },
-
-    updateEvent: (state, action: PayloadAction<UpdateEventPayload>) => {
-      const event = state.items.find((item) => item.id === action.payload.id);
-      if (event) {
-        Object.assign(event, action.payload.data);
-      }
-    },
-
-    setEventStatus: (state, action: PayloadAction<SetEventStatusPayload>) => {
-      const event = state.items.find((item) => item.id === action.payload.id);
-      if (event) {
-        event.status = action.payload.status;
-      }
-    },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchPublishedEvents.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(fetchPublishedEvents.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.items = mergeItems(state.items, action.payload);
+      })
+      .addCase(fetchPublishedEvents.rejected, (state, action) => {
+        state.status = "error";
+        state.error = action.payload ?? "Nu am putut incarca evenimentele.";
+      })
+      .addCase(fetchOrganizerEvents.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(fetchOrganizerEvents.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.items = mergeItems(state.items, action.payload);
+      })
+      .addCase(fetchOrganizerEvents.rejected, (state, action) => {
+        state.status = "error";
+        state.error = action.payload ?? "Nu am putut incarca evenimentele organizatorului.";
+      })
+      .addCase(fetchEventById.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(fetchEventById.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.items = upsertItem(state.items, action.payload);
+      })
+      .addCase(fetchEventById.rejected, (state, action) => {
+        state.status = "error";
+        state.error = action.payload ?? "Nu am putut incarca evenimentul.";
+      })
+      .addCase(addEvent.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(addEvent.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.items = upsertItem(state.items, action.payload);
+      })
+      .addCase(addEvent.rejected, (state, action) => {
+        state.status = "error";
+        state.error = action.payload ?? "Nu am putut crea evenimentul.";
+      })
+      .addCase(updateEvent.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(updateEvent.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.items = upsertItem(state.items, action.payload);
+      })
+      .addCase(updateEvent.rejected, (state, action) => {
+        state.status = "error";
+        state.error = action.payload ?? "Nu am putut actualiza evenimentul.";
+      })
+      .addCase(setEventStatus.fulfilled, (state, action) => {
+        state.items = upsertItem(state.items, action.payload);
+      })
+      .addCase(setEventStatus.rejected, (state, action) => {
+        state.error = action.payload ?? "Nu am putut schimba statusul evenimentului.";
+      });
   },
 });
 
-export const { addEvent, updateEvent, setEventStatus } = eventsSlice.actions;
 export default eventsSlice.reducer;
