@@ -1,6 +1,7 @@
-﻿using Go_OutAppBackend.Data;
+using Go_OutAppBackend.Data;
 using Go_OutAppBackend.DTOs;
 using Go_OutAppBackend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -28,7 +29,8 @@ namespace Go_OutAppBackend.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto dto)
         {
-            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
 
             if (existingUser != null)
             {
@@ -37,8 +39,8 @@ namespace Go_OutAppBackend.Controllers
 
             var user = new User
             {
-                FullName = dto.FullName,
-                Email = dto.Email,
+                FullName = dto.FullName.Trim(),
+                Email = normalizedEmail,
                 PasswordHash = HashPassword(dto.Password),
                 Role = dto.Role
             };
@@ -55,10 +57,11 @@ namespace Go_OutAppBackend.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
+            var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
             var hashedPassword = HashPassword(dto.Password);
 
             var user = await _context.Users.FirstOrDefaultAsync(u =>
-                u.Email == dto.Email && u.PasswordHash == hashedPassword);
+                u.Email == normalizedEmail && u.PasswordHash == hashedPassword);
 
             if (user == null)
             {
@@ -71,14 +74,79 @@ namespace Go_OutAppBackend.Controllers
             {
                 message = "Login successful.",
                 token,
-                user = new
-                {
-                    user.Id,
-                    user.FullName,
-                    user.Email,
-                    user.Role
-                }
+                user = MapUser(user)
             });
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<ActionResult<AuthUserDto>> GetCurrentUser()
+        {
+            var user = await GetCurrentUserEntity();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            return Ok(MapUser(user));
+        }
+
+        [Authorize]
+        [HttpPut("me")]
+        public async Task<ActionResult<AuthUserDto>> UpdateProfile(UpdateProfileDto dto)
+        {
+            var user = await GetCurrentUserEntity();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            var fullName = dto.FullName.Trim();
+            var email = dto.Email.Trim().ToLowerInvariant();
+
+            if (string.IsNullOrWhiteSpace(fullName))
+            {
+                return BadRequest(new { message = "Numele este obligatoriu." });
+            }
+
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return BadRequest(new { message = "Email-ul este obligatoriu." });
+            }
+
+            var emailTaken = await _context.Users.AnyAsync(u => u.Email == email && u.Id != user.Id);
+            if (emailTaken)
+            {
+                return BadRequest(new { message = "Email already exists." });
+            }
+
+            user.FullName = fullName;
+            user.Email = email;
+
+            await _context.SaveChangesAsync();
+            return Ok(MapUser(user));
+        }
+
+        private async Task<User?> GetCurrentUserEntity()
+        {
+            var claimValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(claimValue, out var userId))
+            {
+                return null;
+            }
+
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        }
+
+        private static AuthUserDto MapUser(User user)
+        {
+            return new AuthUserDto
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                Role = user.Role
+            };
         }
 
         private string GenerateJwtToken(User user)

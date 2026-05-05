@@ -1,4 +1,4 @@
-﻿using Go_OutAppBackend.Models;
+using Go_OutAppBackend.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Go_OutAppBackend.Data
@@ -35,6 +35,14 @@ namespace Go_OutAppBackend.Data
                 .WithOne(t => t.Event)
                 .HasForeignKey(t => t.EventId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Event>()
+                .Property(e => e.Price)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Ticket>()
+                .Property(t => t.UnitPrice)
+                .HasPrecision(18, 2);
 
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
