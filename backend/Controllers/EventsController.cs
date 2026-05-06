@@ -4,6 +4,7 @@ using Go_OutAppBackend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using System.Security.Claims;
 using System.Text.Json;
 
@@ -79,6 +80,70 @@ namespace Go_OutAppBackend.Controllers
             return Ok(MapEvent(eventEntity));
         }
 
+        [HttpGet("{id:int}/overview")]
+        [Authorize(Roles = "organizer,admin")]
+        public async Task<ActionResult<OrganizerEventOverviewDto>> GetOrganizerOverview(int id)
+        {
+            var eventEntity = await _context.Events
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (eventEntity is null)
+            {
+                return NotFound(new { message = "Event not found." });
+            }
+
+            if (!CanManageEvent(eventEntity))
+            {
+                return Forbid();
+            }
+
+            var tickets = await _context.Tickets
+                .AsNoTracking()
+                .Include(t => t.User)
+                .Where(t => t.EventId == id)
+                .OrderByDescending(t => t.PurchaseDate)
+                .ToListAsync();
+
+            var culture = CultureInfo.GetCultureInfo("ro-RO");
+            var salesTimeline = tickets
+                .GroupBy(ticket => new DateTime(ticket.PurchaseDate.Year, ticket.PurchaseDate.Month, ticket.PurchaseDate.Day, ticket.PurchaseDate.Hour, 0, 0, DateTimeKind.Utc))
+                .OrderBy(group => group.Key)
+                .Select(group => new OrganizerEventSalesPointDto
+                {
+                    BucketStart = group.Key.ToString("O"),
+                    Label = group.Key.ToLocalTime().ToString("dd MMM HH:mm", culture),
+                    TicketsSold = group.Sum(ticket => ticket.Quantity),
+                    Revenue = group.Sum(ticket => ticket.UnitPrice * ticket.Quantity)
+                })
+                .ToList();
+
+            var overview = new OrganizerEventOverviewDto
+            {
+                Event = MapEvent(eventEntity),
+                TicketsSold = tickets.Sum(ticket => ticket.Quantity),
+                Revenue = tickets.Sum(ticket => ticket.UnitPrice * ticket.Quantity),
+                OrdersCount = tickets.Count,
+                AvailableTickets = eventEntity.AvailableSeats,
+                SalesTimeline = salesTimeline,
+                RecentOrders = tickets
+                    .Take(12)
+                    .Select(ticket => new OrganizerEventOrderDto
+                    {
+                        TicketId = ticket.Id.ToString(),
+                        CustomerName = ticket.User.FullName,
+                        CustomerEmail = ticket.User.Email,
+                        TicketTypeName = ticket.TicketTypeName,
+                        Quantity = ticket.Quantity,
+                        TotalPrice = ticket.UnitPrice * ticket.Quantity,
+                        PurchasedAt = ticket.PurchaseDate.ToString("O")
+                    })
+                    .ToList()
+            };
+
+            return Ok(overview);
+        }
+
         [HttpPost]
         [Authorize(Roles = "organizer,admin")]
         public async Task<ActionResult<EventDto>> CreateEvent(CreateEventDto dto)
@@ -141,6 +206,33 @@ namespace Go_OutAppBackend.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(MapEvent(eventEntity));
+        }
+
+        [HttpDelete("{id:int}")]
+        [Authorize(Roles = "organizer,admin")]
+        public async Task<IActionResult> DeleteEvent(int id)
+        {
+            var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.Id == id);
+            if (eventEntity is null)
+            {
+                return NotFound(new { message = "Event not found." });
+            }
+
+            if (!CanManageEvent(eventEntity))
+            {
+                return Forbid();
+            }
+
+            var relatedTickets = await _context.Tickets.Where(ticket => ticket.EventId == id).ToListAsync();
+            if (relatedTickets.Count > 0)
+            {
+                _context.Tickets.RemoveRange(relatedTickets);
+            }
+
+            _context.Events.Remove(eventEntity);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
         private Event BuildEventEntity(CreateEventDto dto, int organizerId, Event? existing)

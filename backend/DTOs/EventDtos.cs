@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json.Serialization;
 
 namespace Go_OutAppBackend.DTOs
@@ -27,6 +28,36 @@ namespace Go_OutAppBackend.DTOs
         public string? ImageUrl { get; set; }
         public List<string>? Performers { get; set; }
         public List<EventTicketTypeDto>? TicketTypes { get; set; }
+    }
+
+    public class OrganizerEventSalesPointDto
+    {
+        public string BucketStart { get; set; } = string.Empty;
+        public string Label { get; set; } = string.Empty;
+        public int TicketsSold { get; set; }
+        public decimal Revenue { get; set; }
+    }
+
+    public class OrganizerEventOrderDto
+    {
+        public string TicketId { get; set; } = string.Empty;
+        public string CustomerName { get; set; } = string.Empty;
+        public string CustomerEmail { get; set; } = string.Empty;
+        public string TicketTypeName { get; set; } = string.Empty;
+        public int Quantity { get; set; }
+        public decimal TotalPrice { get; set; }
+        public string PurchasedAt { get; set; } = string.Empty;
+    }
+
+    public class OrganizerEventOverviewDto
+    {
+        public EventDto Event { get; set; } = new();
+        public int TicketsSold { get; set; }
+        public decimal Revenue { get; set; }
+        public int OrdersCount { get; set; }
+        public int AvailableTickets { get; set; }
+        public List<OrganizerEventSalesPointDto> SalesTimeline { get; set; } = new();
+        public List<OrganizerEventOrderDto> RecentOrders { get; set; } = new();
     }
 
     public class CreateEventDto
