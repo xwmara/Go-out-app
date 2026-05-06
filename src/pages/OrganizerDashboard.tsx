@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../app/store/hook";
 import { selectOrganizerEvents } from "../features/events/eventSelectors";
-import { fetchOrganizerEvents, setEventStatus } from "../features/events/eventsSlice";
+import { deleteEvent, fetchOrganizerEvents, setEventStatus } from "../features/events/eventsSlice";
 import type { EventItem } from "../features/events/eventTypes";
 
 const formatDate = (value: string) =>
@@ -15,7 +15,7 @@ const formatDate = (value: string) =>
 
 function PencilIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 20h9" />
       <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
     </svg>
@@ -24,23 +24,31 @@ function PencilIcon() {
 
 function EyeIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
       <circle cx="12" cy="12" r="3" />
     </svg>
   );
 }
 
-function StatusBadge({ status }: { status: EventItem["status"] }) {
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="M19 6l-1 14H6L5 6" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+    </svg>
+  );
+}
+
+function StatusLabel({ status }: { status: EventItem["status"] }) {
   const isPublished = status === "published";
 
   return (
-    <span
-      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${
-        isPublished ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
-      }`}
-    >
-      <span className={`h-2.5 w-2.5 rounded-full ${isPublished ? "bg-emerald-500" : "bg-amber-500"}`} />
+    <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-sm font-black text-slate-950 shadow-sm">
+      <span className={`h-3 w-3 rounded-full ${isPublished ? "bg-emerald-400" : "bg-amber-400"}`} />
       {isPublished ? "Live" : "Draft"}
     </span>
   );
@@ -60,40 +68,46 @@ export default function OrganizerDashboard() {
   );
 
   const goToEventWorkspace = (eventId: string) => {
-    navigate(`/organizer/events/${eventId}/edit`);
+    navigate(`/organizer/events/${eventId}/overview`);
+  };
+
+  const handleDelete = async (eventId: string, title: string) => {
+    const confirmed = window.confirm(`Sigur vrei sa stergi evenimentul "${title}"? Actiunea nu poate fi anulata.`);
+    if (!confirmed) return;
+    await dispatch(deleteEvent(eventId));
   };
 
   return (
-    <div className="space-y-8">
-      <section className="flex flex-col gap-5 rounded-[2rem] bg-white p-8 shadow-[0_30px_80px_rgba(15,23,42,0.12)] lg:flex-row lg:items-end lg:justify-between">
+    <div className="space-y-8 pb-10">
+      <section className="flex flex-col gap-5 rounded-[1.75rem] bg-white p-8 shadow-[0_24px_70px_rgba(15,23,42,0.09)] lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-sm uppercase tracking-[0.25em] text-slate-400">Dashboard</p>
-          <h1 className="mt-2 text-4xl font-black text-slate-950">Evenimentele listate</h1>
+          <h1 className="mt-2 text-4xl font-black tracking-tight text-slate-950">Evenimente listate</h1>
           <p className="mt-3 max-w-2xl text-slate-600">
-            Aici vezi toate evenimentele tale publicate sau salvate ca draft. Din fiecare card poti intra mai departe in zona de administrare a evenimentului.
+            Vezi evenimentele postate si intra in zona de administrare pentru statistici, bilete, fiscalizare si promovare.
           </p>
         </div>
         <Link
           to="/organizer/events/create"
-          className="inline-flex items-center justify-center rounded-full bg-[linear-gradient(135deg,#7c3aed,#111827)] px-6 py-3 text-base font-semibold text-white shadow-lg shadow-violet-200 transition hover:opacity-95"
+          className="inline-flex items-center justify-center rounded-full bg-[linear-gradient(135deg,#7c3aed,#111827)] px-7 py-3 text-base font-black text-white shadow-lg shadow-violet-200 transition hover:opacity-95"
         >
           + Listeaza eveniment
         </Link>
       </section>
 
       {sortedEvents.length === 0 ? (
-        <section className="rounded-[2rem] bg-white p-8 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-          <h2 className="text-2xl font-bold text-slate-950">Nu ai inca evenimente listate</h2>
-          <p className="mt-3 text-slate-600">Creeaza primul eveniment si el va aparea aici, in dashboardul organizerului.</p>
+        <section className="rounded-[1.75rem] bg-white p-8 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+          <h2 className="text-2xl font-black text-slate-950">Nu ai inca evenimente listate</h2>
+          <p className="mt-3 max-w-xl text-slate-600">Creeaza primul eveniment si el va aparea aici, in dashboardul organizatorului.</p>
           <Link
             to="/organizer/events/create"
-            className="mt-6 inline-flex rounded-full bg-[linear-gradient(135deg,#7c3aed,#111827)] px-5 py-3 font-semibold text-white shadow-lg shadow-violet-200 transition hover:opacity-95"
+            className="mt-6 inline-flex rounded-full bg-[linear-gradient(135deg,#7c3aed,#111827)] px-6 py-3 font-black text-white shadow-lg shadow-violet-200 transition hover:opacity-95"
           >
             Creeaza eveniment nou
           </Link>
         </section>
       ) : (
-        <section className="space-y-6">
+        <section className="space-y-7">
           {sortedEvents.map((event) => (
             <article
               key={event.id}
@@ -106,61 +120,82 @@ export default function OrganizerDashboard() {
                   goToEventWorkspace(event.id);
                 }
               }}
-              className="group overflow-hidden rounded-[2rem] bg-white shadow-[0_18px_48px_rgba(15,23,42,0.08)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(15,23,42,0.14)]"
+              className="group relative min-h-[300px] overflow-hidden rounded-[1.75rem] bg-white shadow-[0_24px_70px_rgba(15,23,42,0.12)] outline-none transition hover:-translate-y-1 hover:shadow-[0_30px_85px_rgba(15,23,42,0.16)] focus-visible:ring-2 focus-visible:ring-violet-300"
             >
-              <div className="grid min-h-[280px] gap-0 lg:grid-cols-[240px_1fr_170px]">
-                <div className="relative min-h-[220px] bg-slate-200 lg:min-h-full">
+              {event.imageUrl ? (
+                <img src={event.imageUrl} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-55 blur-2xl" />
+              ) : (
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_45%,rgba(124,58,237,0.35),transparent_30%),linear-gradient(135deg,#2f185f,#0f172a)]" />
+              )}
+              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.94)_33%,rgba(255,255,255,0.74)_57%,rgba(255,255,255,0.46)_100%)]" />              <div className="relative grid min-h-[300px] gap-6 p-6 md:grid-cols-[230px_1fr_180px] md:items-center lg:p-7">
+                <div className="h-[250px] overflow-hidden rounded-[1.15rem] bg-slate-100 shadow-[0_20px_50px_rgba(15,23,42,0.16)]">
                   {event.imageUrl ? (
                     <img src={event.imageUrl} alt={event.title} className="h-full w-full object-cover" />
                   ) : (
-                    <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_top,#8b5cf6,transparent_55%),linear-gradient(135deg,#111827,#1e293b)] p-6 text-center text-2xl font-black text-white">
-                      {event.title}
+                    <div className="flex h-full items-center justify-center bg-[linear-gradient(135deg,#7c3aed,#111827)] p-5 text-center text-2xl font-black text-white">
+                      {event.title || "Eveniment"}
                     </div>
                   )}
                 </div>
 
-                <div className="flex flex-col justify-center gap-4 bg-[linear-gradient(135deg,rgba(15,23,42,0.98),rgba(88,28,135,0.88))] px-8 py-8 text-white">
+                <div className="space-y-4">
                   <div className="flex flex-wrap items-center gap-3">
-                    <StatusBadge status={event.status} />
-                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/85">
-                      {event.category}
+                    <StatusLabel status={event.status} />
+                    <span className="rounded-full border border-slate-200 bg-white/85 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                      {event.category || "Eveniment"}
                     </span>
                   </div>
+
                   <div>
-                    <h2 className="text-3xl font-black leading-tight">{event.title}</h2>
-                    <p className="mt-3 text-lg font-semibold text-white/90">{formatDate(event.date)}</p>
-                    <p className="mt-1 text-white/70">{event.city}, {event.venueName}</p>
+                    <h2 className="max-w-3xl text-3xl font-black leading-tight text-slate-950 md:text-4xl">
+                      {event.title || "Eveniment fara titlu"}
+                    </h2>
+                    <p className="mt-2 text-lg font-black text-slate-700">{formatDate(event.date)}</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-500">{event.city} • {event.venueName}</p>
                   </div>
-                  <div className="flex flex-wrap gap-6 text-sm text-white/75">
-                    <span>de la {event.ticketPrice ?? 0} lei</span>
-                    <span>{event.availableTickets ?? 0} bilete disponibile</span>
+
+                  <div className="flex flex-wrap gap-3 text-sm font-bold text-slate-600">
+                    <span className="rounded-full border border-slate-200 bg-white/85 px-3 py-1">de la {event.ticketPrice ?? 0} lei</span>
+                    <span className="rounded-full border border-slate-200 bg-white/85 px-3 py-1">{event.availableTickets ?? 0} bilete disponibile</span>
                   </div>
                 </div>
 
-                <div className="flex flex-row items-center justify-end gap-3 bg-white px-6 py-6 lg:flex-col lg:justify-center">
-                  <button
-                    type="button"
-                    onClick={(clickEvent) => {
-                      clickEvent.stopPropagation();
-                      navigate(`/organizer/events/${event.id}/edit`);
-                    }}
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950"
-                    aria-label={`Editeaza ${event.title}`}
-                  >
-                    <PencilIcon />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={(clickEvent) => {
-                      clickEvent.stopPropagation();
-                      goToEventWorkspace(event.id);
-                    }}
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950"
-                    aria-label={`Deschide ${event.title}`}
-                  >
-                    <EyeIcon />
-                  </button>
+                <div className="flex flex-col items-start gap-4 md:items-end">
+                  <div className="flex items-center gap-3 text-slate-700">
+                    <button
+                      type="button"
+                      onClick={(clickEvent) => {
+                        clickEvent.stopPropagation();
+                        navigate(`/organizer/events/${event.id}/edit`);
+                      }}
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+                      aria-label={`Editeaza ${event.title}`}
+                    >
+                      <PencilIcon />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(clickEvent) => {
+                        clickEvent.stopPropagation();
+                        goToEventWorkspace(event.id);
+                      }}
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+                      aria-label={`Deschide ${event.title}`}
+                    >
+                      <EyeIcon />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(clickEvent) => {
+                        clickEvent.stopPropagation();
+                        void handleDelete(event.id, event.title);
+                      }}
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-rose-100 bg-white text-rose-600 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+                      aria-label={`Sterge ${event.title}`}
+                    >
+                      <TrashIcon />
+                    </button>
+                  </div>
 
                   {event.status === "draft" ? (
                     <button
@@ -169,7 +204,7 @@ export default function OrganizerDashboard() {
                         clickEvent.stopPropagation();
                         void dispatch(setEventStatus({ id: event.id, status: "published" }));
                       }}
-                      className="rounded-full bg-[linear-gradient(135deg,#7c3aed,#111827)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-200 transition hover:opacity-95"
+                      className="rounded-full bg-[linear-gradient(135deg,#7c3aed,#111827)] px-5 py-2 text-sm font-black text-white shadow-lg shadow-violet-200 transition hover:opacity-95"
                     >
                       Publica
                     </button>
@@ -180,7 +215,7 @@ export default function OrganizerDashboard() {
                         clickEvent.stopPropagation();
                         void dispatch(setEventStatus({ id: event.id, status: "draft" }));
                       }}
-                      className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950"
+                      className="rounded-full border border-slate-200 bg-white px-5 py-2 text-sm font-black text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
                     >
                       Draft
                     </button>
@@ -194,3 +229,4 @@ export default function OrganizerDashboard() {
     </div>
   );
 }
+

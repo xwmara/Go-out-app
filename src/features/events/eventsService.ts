@@ -1,5 +1,5 @@
 import { api } from "../../services/api";
-import type { EventItem, EventStatus } from "./eventTypes";
+import type { EventItem, EventStatus, OrganizerEventOverview } from "./eventTypes";
 
 interface EventStatusPayload {
   id: string;
@@ -10,6 +10,13 @@ const normalizeEvent = (event: EventItem): EventItem => ({
   ...event,
   ticketTypes: event.ticketTypes ?? [],
   performers: event.performers ?? [],
+});
+
+const normalizeOverview = (overview: OrganizerEventOverview): OrganizerEventOverview => ({
+  ...overview,
+  event: normalizeEvent(overview.event),
+  salesTimeline: overview.salesTimeline ?? [],
+  recentOrders: overview.recentOrders ?? [],
 });
 
 export const eventsService = {
@@ -26,6 +33,11 @@ export const eventsService = {
   async getById(id: string): Promise<EventItem> {
     const { data } = await api.get<EventItem>(`/Events/${id}`);
     return normalizeEvent(data);
+  },
+
+  async getOrganizerOverview(id: string): Promise<OrganizerEventOverview> {
+    const { data } = await api.get<OrganizerEventOverview>(`/Events/${id}/overview`);
+    return normalizeOverview(data);
   },
 
   async create(payload: Omit<EventItem, "id" | "status" | "createdAt"> & { organizerId?: string }): Promise<EventItem> {
@@ -71,5 +83,9 @@ export const eventsService = {
       status: payload.status,
     });
     return normalizeEvent(data);
+  },
+
+  async remove(id: string): Promise<void> {
+    await api.delete(`/Events/${id}`);
   },
 };

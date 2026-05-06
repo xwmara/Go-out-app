@@ -24,3 +24,30 @@ export interface EventItem {
   performers?: string[];
   ticketTypes?: EventTicketType[];
 }
+
+export interface OrganizerEventSalesPoint {
+  bucketStart: string;
+  label: string;
+  ticketsSold: number;
+  revenue: number;
+}
+
+export interface OrganizerEventOrderItem {
+  ticketId: string;
+  customerName: string;
+  customerEmail: string;
+  ticketTypeName: string;
+  quantity: number;
+  totalPrice: number;
+  purchasedAt: string;
+}
+
+export interface OrganizerEventOverview {
+  event: EventItem;
+  ticketsSold: number;
+  revenue: number;
+  ordersCount: number;
+  availableTickets: number;
+  salesTimeline: OrganizerEventSalesPoint[];
+  recentOrders: OrganizerEventOrderItem[];
+}

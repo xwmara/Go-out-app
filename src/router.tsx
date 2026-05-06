@@ -1,6 +1,7 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
 import OrganizerLayout from "./components/layout/OrganizerLayout";
+import OrganizerEventLayout from "./components/layout/OrganizerEventLayout";
 import AdminLayout from "./components/layout/AdminLayout";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import PublicOnlyRoute from "./components/common/PublicOnlyRoute";
@@ -13,6 +14,10 @@ import Register from "./pages/Register";
 import OrganizerDashboard from "./pages/OrganizerDashboard";
 import OrganizerEvents from "./pages/OrganizerEvents";
 import OrganizerMarketing from "./pages/OrganizerMarketing";
+import OrganizerEventOverview from "./pages/OrganizerEventOverview";
+import OrganizerEventTickets from "./pages/OrganizerEventTickets";
+import OrganizerEventFiscalization from "./pages/OrganizerEventFiscalization";
+import OrganizerEventPromotion from "./pages/OrganizerEventPromotion";
 import CreateEvent from "./pages/CreateEvent";
 import EditEvent from "./pages/EditEvent";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -24,33 +29,15 @@ export const router = createBrowserRouter([
   {
     element: <MainLayout />,
     children: [
-      {
-        path: "/",
-        element: <Home />,
-      },
-      {
-        path: "/events",
-        element: <Events />,
-      },
-      {
-        path: "/events/:id",
-        element: <EventDetails />,
-      },
-      {
-        path: "/search",
-        element: <Search />,
-      },
+      { path: "/", element: <Home /> },
+      { path: "/events", element: <Events /> },
+      { path: "/events/:id", element: <EventDetails /> },
+      { path: "/search", element: <Search /> },
       {
         element: <ProtectedRoute allowedRoles={["client"]} />,
         children: [
-          {
-            path: "/my-tickets",
-            element: <MyTickets />,
-          },
-          {
-            path: "/profile",
-            element: <Profile />,
-          },
+          { path: "/my-tickets", element: <MyTickets /> },
+          { path: "/profile", element: <Profile /> },
         ],
       },
     ],
@@ -58,14 +45,8 @@ export const router = createBrowserRouter([
   {
     element: <PublicOnlyRoute />,
     children: [
-      {
-        path: "/login",
-        element: <Login />,
-      },
-      {
-        path: "/register",
-        element: <Register />,
-      },
+      { path: "/login", element: <Login /> },
+      { path: "/register", element: <Register /> },
     ],
   },
   {
@@ -74,30 +55,23 @@ export const router = createBrowserRouter([
       {
         element: <OrganizerLayout />,
         children: [
-          {
-            path: "/organizer/dashboard",
-            element: <OrganizerDashboard />,
-          },
-          {
-            path: "/organizer/events",
-            element: <OrganizerEvents />,
-          },
-          {
-            path: "/organizer/marketing",
-            element: <OrganizerMarketing />,
-          },
-          {
-            path: "/organizer/profile",
-            element: <Profile />,
-          },
-          {
-            path: "/organizer/events/create",
-            element: <CreateEvent />,
-          },
-          {
-            path: "/organizer/events/:id/edit",
-            element: <EditEvent />,
-          },
+          { path: "/organizer/dashboard", element: <OrganizerDashboard /> },
+          { path: "/organizer/events", element: <OrganizerEvents /> },
+          { path: "/organizer/marketing", element: <OrganizerMarketing /> },
+          { path: "/organizer/profile", element: <Profile /> },
+          { path: "/organizer/events/create", element: <CreateEvent /> },
+        ],
+      },
+      {
+        path: "/organizer/events/:id",
+        element: <OrganizerEventLayout />,
+        children: [
+          { index: true, element: <Navigate to="overview" replace /> },
+          { path: "overview", element: <OrganizerEventOverview /> },
+          { path: "edit", element: <EditEvent /> },
+          { path: "tickets", element: <OrganizerEventTickets /> },
+          { path: "fiscalizare", element: <OrganizerEventFiscalization /> },
+          { path: "promovare", element: <OrganizerEventPromotion /> },
         ],
       },
     ],
@@ -107,12 +81,7 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <AdminLayout />,
-        children: [
-          {
-            path: "/admin",
-            element: <AdminDashboard />,
-          },
-        ],
+        children: [{ path: "/admin", element: <AdminDashboard /> }],
       },
     ],
   },

@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+﻿import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import { eventsService } from "./eventsService";
 import type { EventItem, EventStatus, EventTicketType } from "./eventTypes";
@@ -56,17 +56,21 @@ const upsertItem = (items: EventItem[], incoming: EventItem) => mergeItems(items
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (axios.isAxiosError<{ message?: string }>(error)) {
+    if (error.response?.status === 401) {
+      return "Sesiunea a expirat sau nu esti autentificat. Logheaza-te din nou ca organizator.";
+    }
+
+    if (error.response?.status === 403) {
+      return "Contul curent nu are permisiuni de organizator pentru aceasta actiune.";
+    }
+
     return error.response?.data?.message ?? fallback;
   }
 
   return fallback;
 };
 
-export const fetchPublishedEvents = createAsyncThunk<
-  EventItem[],
-  void,
-  { rejectValue: string }
->("events/fetchPublished", async (_, thunkApi) => {
+export const fetchPublishedEvents = createAsyncThunk<EventItem[], void, { rejectValue: string }>("events/fetchPublished", async (_, thunkApi) => {
   try {
     return await eventsService.getPublished();
   } catch (error) {
@@ -74,11 +78,7 @@ export const fetchPublishedEvents = createAsyncThunk<
   }
 });
 
-export const fetchOrganizerEvents = createAsyncThunk<
-  EventItem[],
-  void,
-  { rejectValue: string }
->("events/fetchOrganizer", async (_, thunkApi) => {
+export const fetchOrganizerEvents = createAsyncThunk<EventItem[], void, { rejectValue: string }>("events/fetchOrganizer", async (_, thunkApi) => {
   try {
     return await eventsService.getOrganizerEvents();
   } catch (error) {
@@ -86,11 +86,7 @@ export const fetchOrganizerEvents = createAsyncThunk<
   }
 });
 
-export const fetchEventById = createAsyncThunk<
-  EventItem,
-  string,
-  { rejectValue: string }
->("events/fetchById", async (id, thunkApi) => {
+export const fetchEventById = createAsyncThunk<EventItem, string, { rejectValue: string }>("events/fetchById", async (id, thunkApi) => {
   try {
     return await eventsService.getById(id);
   } catch (error) {
@@ -98,11 +94,7 @@ export const fetchEventById = createAsyncThunk<
   }
 });
 
-export const addEvent = createAsyncThunk<
-  EventItem,
-  CreateEventPayload,
-  { rejectValue: string }
->("events/create", async (payload, thunkApi) => {
+export const addEvent = createAsyncThunk<EventItem, CreateEventPayload, { rejectValue: string }>("events/create", async (payload, thunkApi) => {
   try {
     return await eventsService.create(payload);
   } catch (error) {
@@ -110,11 +102,7 @@ export const addEvent = createAsyncThunk<
   }
 });
 
-export const updateEvent = createAsyncThunk<
-  EventItem,
-  UpdateEventPayload,
-  { rejectValue: string }
->("events/update", async (payload, thunkApi) => {
+export const updateEvent = createAsyncThunk<EventItem, UpdateEventPayload, { rejectValue: string }>("events/update", async (payload, thunkApi) => {
   try {
     return await eventsService.update(payload.id, payload.data);
   } catch (error) {
@@ -122,15 +110,20 @@ export const updateEvent = createAsyncThunk<
   }
 });
 
-export const setEventStatus = createAsyncThunk<
-  EventItem,
-  SetEventStatusPayload,
-  { rejectValue: string }
->("events/setStatus", async (payload, thunkApi) => {
+export const setEventStatus = createAsyncThunk<EventItem, SetEventStatusPayload, { rejectValue: string }>("events/setStatus", async (payload, thunkApi) => {
   try {
     return await eventsService.updateStatus(payload);
   } catch (error) {
     return thunkApi.rejectWithValue(getErrorMessage(error, "Nu am putut schimba statusul evenimentului."));
+  }
+});
+
+export const deleteEvent = createAsyncThunk<string, string, { rejectValue: string }>("events/delete", async (id, thunkApi) => {
+  try {
+    await eventsService.remove(id);
+    return id;
+  } catch (error) {
+    return thunkApi.rejectWithValue(getErrorMessage(error, "Nu am putut sterge evenimentul."));
   }
 });
 
@@ -205,8 +198,15 @@ const eventsSlice = createSlice({
       })
       .addCase(setEventStatus.rejected, (state, action) => {
         state.error = action.payload ?? "Nu am putut schimba statusul evenimentului.";
+      })
+      .addCase(deleteEvent.fulfilled, (state, action) => {
+        state.items = state.items.filter((item) => item.id !== action.payload);
+      })
+      .addCase(deleteEvent.rejected, (state, action) => {
+        state.error = action.payload ?? "Nu am putut sterge evenimentul.";
       });
   },
 });
 
 export default eventsSlice.reducer;
+
