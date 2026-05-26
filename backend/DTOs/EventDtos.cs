@@ -88,6 +88,22 @@ namespace Go_OutAppBackend.DTOs
         public decimal UnitPrice { get; set; }
     }
 
+    public class SendInvitationDto
+    {
+        public string TicketTypeId { get; set; } = string.Empty;
+        public string TicketTypeName { get; set; } = string.Empty;
+        public string InvitationType { get; set; } = "nominal";
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public int Quantity { get; set; } = 1;
+    }
+
+    public class SendNotificationDto
+    {
+        public string Subject { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
     public class TicketDto
     {
         public string Id { get; set; } = string.Empty;

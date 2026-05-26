@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Text.Json;
 
@@ -15,11 +17,13 @@ namespace Go_OutAppBackend.Controllers
     public class EventsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
         private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-        public EventsController(ApplicationDbContext context)
+        public EventsController(ApplicationDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         [HttpGet("published")]
@@ -235,6 +239,190 @@ namespace Go_OutAppBackend.Controllers
             return NoContent();
         }
 
+        [HttpPost("{id:int}/invitations")]
+        [Authorize(Roles = "organizer,admin")]
+        public async Task<IActionResult> SendInvitation(int id, SendInvitationDto dto)
+        {
+            var eventEntity = await _context.Events
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (eventEntity is null)
+            {
+                return NotFound(new { message = "Event not found." });
+            }
+
+            if (!CanManageEvent(eventEntity))
+            {
+                return Forbid();
+            }
+
+            var recipientEmail = dto.Email.Trim();
+            if (string.IsNullOrWhiteSpace(recipientEmail))
+            {
+                return BadRequest(new { message = "Email-ul destinatarului este obligatoriu." });
+            }
+
+            try
+            {
+                _ = new MailAddress(recipientEmail);
+            }
+            catch
+            {
+                return BadRequest(new { message = "Email-ul destinatarului nu este valid." });
+            }
+
+            if (dto.Quantity <= 0)
+            {
+                return BadRequest(new { message = "Cantitatea trebuie sa fie cel putin 1." });
+            }
+
+            if (dto.InvitationType == "nominal" && (string.IsNullOrWhiteSpace(dto.FirstName) || string.IsNullOrWhiteSpace(dto.LastName)))
+            {
+                return BadRequest(new { message = "Completeaza numele si prenumele pentru invitatia nominala." });
+            }
+
+            var smtpHost = _configuration["Smtp:Host"];
+            var smtpPort = _configuration.GetValue<int?>("Smtp:Port") ?? 587;
+            var smtpUsername = _configuration["Smtp:Username"];
+            var smtpPassword = _configuration["Smtp:Password"];
+            var smtpFromName = _configuration["Smtp:FromName"] ?? "Go-Out";
+
+            if (string.IsNullOrWhiteSpace(smtpHost) || string.IsNullOrWhiteSpace(smtpUsername) || string.IsNullOrWhiteSpace(smtpPassword) || smtpUsername == "adresa-ta@gmail.com" || smtpPassword == "app-password-ul-de-la-google")
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Configuratia SMTP nu este setata. Pune adresa Gmail reala si App Password-ul in appsettings.Development.json, apoi reporneste backend-ul." });
+            }
+
+            var invitationLabel = dto.InvitationType switch
+            {
+                "open" => "invitatie nenominala",
+                "guestlist" => "guestlist",
+                _ => "invitatie nominala"
+            };
+
+            var guestName = dto.InvitationType == "nominal"
+                ? $"{dto.FirstName.Trim()} {dto.LastName.Trim()}".Trim()
+                : "Invitat";
+
+            var ticketTypeName = string.IsNullOrWhiteSpace(dto.TicketTypeName) ? "General Access" : dto.TicketTypeName.Trim();
+            var subject = $"Invitatie la {eventEntity.Title}";
+            var body = BuildInvitationEmailBody(eventEntity, invitationLabel, guestName, ticketTypeName, dto.Quantity);
+
+            using var message = new MailMessage
+            {
+                From = new MailAddress(smtpUsername, smtpFromName),
+                Subject = subject,
+                Body = body,
+                IsBodyHtml = true
+            };
+            message.To.Add(recipientEmail);
+
+            using var smtpClient = new SmtpClient(smtpHost, smtpPort)
+            {
+                Credentials = new NetworkCredential(smtpUsername, smtpPassword),
+                EnableSsl = true
+            };
+
+            try
+            {
+                await smtpClient.SendMailAsync(message);
+            }
+            catch (SmtpException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Email-ul nu a putut fi trimis. Verifica adresa Gmail, App Password-ul si ca 2-Step Verification este activat." });
+            }
+            catch (InvalidOperationException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Configuratia SMTP este invalida. Verifica Host, Port, Username si Password." });
+            }
+
+            return Ok(new { message = "Invitatia a fost trimisa pe email." });
+        }
+
+        [HttpPost("{id:int}/notifications")]
+        [Authorize(Roles = "organizer,admin")]
+        public async Task<IActionResult> SendNotification(int id, SendNotificationDto dto)
+        {
+            var eventEntity = await _context.Events
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (eventEntity is null)
+            {
+                return NotFound(new { message = "Event not found." });
+            }
+
+            if (!CanManageEvent(eventEntity))
+            {
+                return Forbid();
+            }
+
+            var subject = dto.Subject.Trim();
+            var description = dto.Description.Trim();
+
+            if (string.IsNullOrWhiteSpace(subject) || string.IsNullOrWhiteSpace(description))
+            {
+                return BadRequest(new { message = "Completeaza subiectul si descrierea notificarii." });
+            }
+
+            var smtpHost = _configuration["Smtp:Host"];
+            var smtpPort = _configuration.GetValue<int?>("Smtp:Port") ?? 587;
+            var smtpUsername = _configuration["Smtp:Username"];
+            var smtpPassword = _configuration["Smtp:Password"];
+            var smtpFromName = _configuration["Smtp:FromName"] ?? "Go-Out";
+
+            if (string.IsNullOrWhiteSpace(smtpHost) || string.IsNullOrWhiteSpace(smtpUsername) || string.IsNullOrWhiteSpace(smtpPassword) || smtpUsername == "adresa-ta@gmail.com" || smtpPassword == "app-password-ul-de-la-google")
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Configuratia SMTP nu este setata. Pune adresa Gmail reala si App Password-ul in appsettings.Development.json, apoi reporneste backend-ul." });
+            }
+
+            var recipients = await _context.Tickets
+                .AsNoTracking()
+                .Include(ticket => ticket.User)
+                .Where(ticket => ticket.EventId == id)
+                .Select(ticket => ticket.User.Email)
+                .Distinct()
+                .ToListAsync();
+
+            if (recipients.Count == 0)
+            {
+                return BadRequest(new { message = "Nu exista clienti cu bilete cumparate pentru acest eveniment." });
+            }
+
+            var body = BuildNotificationEmailBody(eventEntity, subject, description);
+
+            using var smtpClient = new SmtpClient(smtpHost, smtpPort)
+            {
+                Credentials = new NetworkCredential(smtpUsername, smtpPassword),
+                EnableSsl = true
+            };
+
+            try
+            {
+                foreach (var recipient in recipients)
+                {
+                    using var message = new MailMessage
+                    {
+                        From = new MailAddress(smtpUsername, smtpFromName),
+                        Subject = subject,
+                        Body = body,
+                        IsBodyHtml = true
+                    };
+                    message.To.Add(recipient);
+                    await smtpClient.SendMailAsync(message);
+                }
+            }
+            catch (SmtpException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Notificarea nu a putut fi trimisa. Verifica adresa Gmail, App Password-ul si ca 2-Step Verification este activat." });
+            }
+            catch (InvalidOperationException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Configuratia SMTP este invalida. Verifica Host, Port, Username si Password." });
+            }
+
+            return Ok(new { message = $"Notificarea a fost trimisa catre {recipients.Count} clienti." });
+        }
         private Event BuildEventEntity(CreateEventDto dto, int organizerId, Event? existing)
         {
             var eventEntity = existing ?? new Event
@@ -329,6 +517,66 @@ namespace Go_OutAppBackend.Controllers
 
             var organizerId = GetCurrentUserId();
             return organizerId == eventEntity.OrganizerId;
+        }
+
+        private static string BuildInvitationEmailBody(Event eventEntity, string invitationLabel, string guestName, string ticketTypeName, int quantity)
+        {
+            var eventDate = eventEntity.Date.ToString("dd MMMM yyyy", CultureInfo.GetCultureInfo("ro-RO"));
+            var safeTitle = WebUtility.HtmlEncode(eventEntity.Title);
+            var safeGuestName = WebUtility.HtmlEncode(guestName);
+            var safeTicketType = WebUtility.HtmlEncode(ticketTypeName);
+            var safeVenue = WebUtility.HtmlEncode(eventEntity.VenueName);
+            var safeAddress = WebUtility.HtmlEncode(eventEntity.VenueAddress);
+            var safeCity = WebUtility.HtmlEncode(eventEntity.City);
+            var safeInvitationLabel = WebUtility.HtmlEncode(invitationLabel);
+
+            return $@"
+<!doctype html>
+<html>
+  <body style=""margin:0;padding:24px;background:#f5f5f7;font-family:Arial,sans-serif;color:#111827;"">
+    <div style=""max-width:620px;margin:0 auto;background:#ffffff;border-radius:16px;padding:28px;border:1px solid #e5e7eb;"">
+      <p style=""margin:0 0 10px;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:#6724e8;font-weight:700;"">Go-Out invitation</p>
+      <h1 style=""margin:0 0 18px;font-size:28px;line-height:1.2;color:#111827;"">{safeTitle}</h1>
+      <p style=""margin:0 0 18px;font-size:16px;line-height:1.6;"">Buna, {safeGuestName}!</p>
+      <p style=""margin:0 0 20px;font-size:16px;line-height:1.6;"">Ai primit o {safeInvitationLabel} pentru evenimentul <strong>{safeTitle}</strong>.</p>
+      <div style=""background:#f9fafb;border-radius:12px;padding:16px;margin:0 0 20px;"">
+        <p style=""margin:0 0 8px;""><strong>Data:</strong> {eventDate}</p>
+        <p style=""margin:0 0 8px;""><strong>Locatie:</strong> {safeVenue}, {safeAddress}, {safeCity}</p>
+        <p style=""margin:0 0 8px;""><strong>Tip bilet:</strong> {safeTicketType}</p>
+        <p style=""margin:0;""><strong>Cantitate:</strong> {quantity}</p>
+      </div>
+      <p style=""margin:0;font-size:14px;line-height:1.6;color:#4b5563;"">Te asteptam la eveniment.</p>
+    </div>
+  </body>
+</html>";
+        }
+        private static string BuildNotificationEmailBody(Event eventEntity, string subject, string description)
+        {
+            var eventDate = eventEntity.Date.ToString("dd MMMM yyyy", CultureInfo.GetCultureInfo("ro-RO"));
+            var safeTitle = WebUtility.HtmlEncode(eventEntity.Title);
+            var safeSubject = WebUtility.HtmlEncode(subject);
+            var safeDescription = WebUtility.HtmlEncode(description);
+            var safeVenue = WebUtility.HtmlEncode(eventEntity.VenueName);
+            var safeAddress = WebUtility.HtmlEncode(eventEntity.VenueAddress);
+            var safeCity = WebUtility.HtmlEncode(eventEntity.City);
+
+            return $@"
+<!doctype html>
+<html>
+  <body style=""margin:0;padding:24px;background:#f5f5f7;font-family:Arial,sans-serif;color:#111827;"">
+    <div style=""max-width:620px;margin:0 auto;background:#ffffff;border-radius:16px;padding:28px;border:1px solid #e5e7eb;"">
+      <p style=""margin:0 0 10px;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:#6724e8;font-weight:700;"">Go-Out notification</p>
+      <h1 style=""margin:0 0 16px;font-size:26px;line-height:1.2;color:#111827;"">{safeSubject}</h1>
+      <p style=""margin:0 0 18px;font-size:16px;line-height:1.6;"">{safeDescription}</p>
+      <div style=""background:#f9fafb;border-radius:12px;padding:16px;margin:0 0 20px;"">
+        <p style=""margin:0 0 8px;""><strong>Eveniment:</strong> {safeTitle}</p>
+        <p style=""margin:0 0 8px;""><strong>Data:</strong> {eventDate}</p>
+        <p style=""margin:0;""><strong>Locatie:</strong> {safeVenue}, {safeAddress}, {safeCity}</p>
+      </div>
+      <p style=""margin:0;font-size:14px;line-height:1.6;color:#4b5563;"">Mesaj trimis de organizator prin Go-Out.</p>
+    </div>
+  </body>
+</html>";
         }
     }
 }
