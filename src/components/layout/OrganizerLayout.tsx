@@ -1,4 +1,4 @@
-﻿import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../app/store/hook";
 import { logout } from "../../features/auth/authSlice";
 import { selectCurrentUser } from "../../features/auth/authSelectors";
@@ -15,12 +15,12 @@ export default function OrganizerLayout() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4">
+        <div className="mx-auto flex max-w-7xl flex-col items-start gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <Link to="/organizer/dashboard" className="text-xl font-black tracking-tight text-slate-950">
             Go-Out App
           </Link>
 
-          <nav className="flex items-center gap-5 text-sm">
+          <nav className="flex w-full flex-wrap items-center gap-3 text-sm sm:gap-5 lg:w-auto">
             <NavLink to="/organizer/dashboard" className={navClass}>
               Dashboard
             </NavLink>
@@ -46,12 +46,12 @@ export default function OrganizerLayout() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
-        <section className="mb-8 rounded-[1.75rem] bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
+        <section className="mb-6 rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:mb-8 sm:rounded-[1.75rem] sm:p-6">
           <p className="text-sm uppercase tracking-[0.25em] text-slate-400">Organizer account</p>
           <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-black text-slate-950">
+              <h1 className="text-2xl font-black text-slate-950 sm:text-3xl">
                 {currentUser?.name ?? "Organizer"}
               </h1>
               <p className="mt-1 text-slate-600">{currentUser?.email}</p>

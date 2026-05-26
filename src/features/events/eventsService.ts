@@ -6,6 +6,20 @@ interface EventStatusPayload {
   status: EventStatus;
 }
 
+export interface SendInvitationPayload {
+  ticketTypeId: string;
+  ticketTypeName: string;
+  invitationType: "nominal" | "open" | "guestlist";
+  firstName: string;
+  lastName: string;
+  email: string;
+  quantity: number;
+}
+export interface SendNotificationPayload {
+  subject: string;
+  description: string;
+}
+
 const normalizeEvent = (event: EventItem): EventItem => ({
   ...event,
   ticketTypes: event.ticketTypes ?? [],
@@ -87,5 +101,13 @@ export const eventsService = {
 
   async remove(id: string): Promise<void> {
     await api.delete(`/Events/${id}`);
+  },
+  async sendInvitation(eventId: string, payload: SendInvitationPayload): Promise<string> {
+    const { data } = await api.post<{ message?: string }>(`/Events/${eventId}/invitations`, payload);
+    return data.message ?? "Invitatia a fost trimisa pe email.";
+  },
+  async sendNotification(eventId: string, payload: SendNotificationPayload): Promise<string> {
+    const { data } = await api.post<{ message?: string }>(`/Events/${eventId}/notifications`, payload);
+    return data.message ?? "Notificarea a fost trimisa catre clienti.";
   },
 };

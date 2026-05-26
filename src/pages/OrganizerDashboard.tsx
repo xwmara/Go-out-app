@@ -1,4 +1,4 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../app/store/hook";
 import { selectOrganizerEvents } from "../features/events/eventSelectors";
@@ -78,18 +78,18 @@ export default function OrganizerDashboard() {
   };
 
   return (
-    <div className="space-y-8 pb-10">
-      <section className="flex flex-col gap-5 rounded-[1.75rem] bg-white p-8 shadow-[0_24px_70px_rgba(15,23,42,0.09)] lg:flex-row lg:items-center lg:justify-between">
+    <div className="space-y-6 pb-8 sm:space-y-8 sm:pb-10">
+      <section className="flex flex-col gap-5 rounded-2xl bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.09)] sm:rounded-[1.75rem] sm:p-8 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-sm uppercase tracking-[0.25em] text-slate-400">Dashboard</p>
-          <h1 className="mt-2 text-4xl font-black tracking-tight text-slate-950">Evenimente listate</h1>
+          <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Evenimente listate</h1>
           <p className="mt-3 max-w-2xl text-slate-600">
             Vezi evenimentele postate si intra in zona de administrare pentru statistici, bilete, fiscalizare si promovare.
           </p>
         </div>
         <Link
           to="/organizer/events/create"
-          className="inline-flex items-center justify-center rounded-full bg-[linear-gradient(135deg,#7c3aed,#111827)] px-7 py-3 text-base font-black text-white shadow-lg shadow-violet-200 transition hover:opacity-95"
+          className="inline-flex w-full items-center justify-center rounded-full bg-[linear-gradient(135deg,#7c3aed,#111827)] px-6 py-3 text-base font-black text-white shadow-lg shadow-violet-200 transition hover:opacity-95 sm:w-auto sm:px-7"
         >
           + Listeaza eveniment
         </Link>
@@ -120,15 +120,15 @@ export default function OrganizerDashboard() {
                   goToEventWorkspace(event.id);
                 }
               }}
-              className="group relative min-h-[300px] overflow-hidden rounded-[1.75rem] bg-white shadow-[0_24px_70px_rgba(15,23,42,0.12)] outline-none transition hover:-translate-y-1 hover:shadow-[0_30px_85px_rgba(15,23,42,0.16)] focus-visible:ring-2 focus-visible:ring-violet-300"
+              className="group relative overflow-hidden rounded-2xl bg-white shadow-[0_24px_70px_rgba(15,23,42,0.12)] outline-none transition hover:-translate-y-1 hover:shadow-[0_30px_85px_rgba(15,23,42,0.16)] focus-visible:ring-2 focus-visible:ring-violet-300 sm:rounded-[1.75rem] md:min-h-[300px]"
             >
               {event.imageUrl ? (
                 <img src={event.imageUrl} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-55 blur-2xl" />
               ) : (
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_45%,rgba(124,58,237,0.35),transparent_30%),linear-gradient(135deg,#2f185f,#0f172a)]" />
               )}
-              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.94)_33%,rgba(255,255,255,0.74)_57%,rgba(255,255,255,0.46)_100%)]" />              <div className="relative grid min-h-[300px] gap-6 p-6 md:grid-cols-[230px_1fr_180px] md:items-center lg:p-7">
-                <div className="h-[250px] overflow-hidden rounded-[1.15rem] bg-slate-100 shadow-[0_20px_50px_rgba(15,23,42,0.16)]">
+              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.94)_33%,rgba(255,255,255,0.74)_57%,rgba(255,255,255,0.46)_100%)]" />              <div className="relative grid gap-5 p-4 sm:p-6 md:min-h-[300px] md:grid-cols-[200px_1fr] md:items-center lg:grid-cols-[230px_1fr_180px] lg:p-7">
+                <div className="aspect-[4/3] overflow-hidden rounded-[1.15rem] bg-slate-100 shadow-[0_20px_50px_rgba(15,23,42,0.16)] md:h-[250px] md:aspect-auto">
                   {event.imageUrl ? (
                     <img src={event.imageUrl} alt={event.title} className="h-full w-full object-cover" />
                   ) : (
@@ -147,7 +147,7 @@ export default function OrganizerDashboard() {
                   </div>
 
                   <div>
-                    <h2 className="max-w-3xl text-3xl font-black leading-tight text-slate-950 md:text-4xl">
+                    <h2 className="max-w-3xl text-2xl font-black leading-tight text-slate-950 sm:text-3xl md:text-4xl">
                       {event.title || "Eveniment fara titlu"}
                     </h2>
                     <p className="mt-2 text-lg font-black text-slate-700">{formatDate(event.date)}</p>
@@ -160,7 +160,7 @@ export default function OrganizerDashboard() {
                   </div>
                 </div>
 
-                <div className="flex flex-col items-start gap-4 md:items-end">
+                <div className="flex flex-row flex-wrap items-center justify-between gap-4 md:col-span-2 lg:col-span-1 lg:flex-col lg:items-end lg:justify-start">
                   <div className="flex items-center gap-3 text-slate-700">
                     <button
                       type="button"

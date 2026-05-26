@@ -75,17 +75,17 @@ export default function OrganizerEventLayout() {
   }, [dispatch, id]);
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `group flex h-12 w-12 items-center justify-center rounded-2xl border transition ${
+    `group flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border transition md:h-12 md:w-12 ${
       isActive
         ? "border-white/35 bg-white text-violet-700 shadow-lg"
         : "border-white/10 bg-white/6 text-white/80 hover:border-white/20 hover:bg-white/10 hover:text-white"
     }`;
 
   return (
-    <div className="min-h-screen overflow-hidden rounded-[2rem] bg-[radial-gradient(circle_at_top_left,rgba(124,58,237,0.28),transparent_24%),linear-gradient(135deg,#050816,#111827)] text-white shadow-[0_30px_90px_rgba(15,23,42,0.32)]">
-      <div className="flex min-h-screen">
-        <aside className="flex w-[92px] shrink-0 flex-col items-center justify-between bg-[linear-gradient(180deg,#7c3aed,#1f1147)] py-6 shadow-[24px_0_70px_rgba(76,29,149,0.3)]">
-          <div className="flex flex-col items-center gap-5">
+    <div className="min-h-screen overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_top_left,rgba(124,58,237,0.28),transparent_24%),linear-gradient(135deg,#050816,#111827)] text-white shadow-[0_30px_90px_rgba(15,23,42,0.32)] sm:rounded-[2rem]">
+      <div className="flex min-h-screen flex-col md:flex-row">
+        <aside className="flex shrink-0 flex-row items-center justify-between gap-4 bg-[linear-gradient(90deg,#7c3aed,#1f1147)] px-4 py-3 shadow-[0_18px_45px_rgba(76,29,149,0.22)] md:w-[92px] md:flex-col md:px-0 md:py-6 md:shadow-[24px_0_70px_rgba(76,29,149,0.3)]">
+          <div className="flex items-center gap-3 md:flex-col md:gap-5">
             <button
               type="button"
               onClick={() => navigate("/organizer/dashboard")}
@@ -95,7 +95,7 @@ export default function OrganizerEventLayout() {
               <BackIcon />
             </button>
 
-            <nav className="flex flex-col gap-3">
+            <nav className="flex gap-2 overflow-x-auto md:flex-col md:gap-3">
               <NavLink to="overview" className={linkClass} aria-label="Overview">
                 <OverviewIcon />
               </NavLink>
@@ -114,20 +114,20 @@ export default function OrganizerEventLayout() {
             </nav>
           </div>
 
-          <div className="w-full px-3 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65">
+          <div className="hidden w-full px-3 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 md:block">
             {event?.status === "published" ? "Live" : "Draft"}
           </div>
         </aside>
 
-        <div className="flex-1 px-6 py-6 lg:px-10 lg:py-8">
-          <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-10 lg:py-8">
+          <div className="mb-6 flex flex-col gap-4 lg:mb-8 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-sm uppercase tracking-[0.3em] text-white/40">Event workspace</p>
-              <h1 className="mt-2 text-4xl font-black tracking-tight text-white">
+              <h1 className="mt-2 text-2xl font-black tracking-tight text-white sm:text-3xl lg:text-4xl">
                 {event?.title ?? "Se incarca evenimentul..."}
               </h1>
               <p className="mt-3 text-white/65">
-                {event ? `${event.city} • ${event.venueName} • ${new Date(event.date).toLocaleDateString("ro-RO")}` : "Administrare completa pentru evenimentul selectat."}
+                {event ? `${event.city} ï¿½ ${event.venueName} ï¿½ ${new Date(event.date).toLocaleDateString("ro-RO")}` : "Administrare completa pentru evenimentul selectat."}
               </p>
             </div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/6 px-4 py-2 text-sm font-semibold text-white/80">

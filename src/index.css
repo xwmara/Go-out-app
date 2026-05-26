@@ -8,6 +8,19 @@ html, body, #root {
 
 body {
   margin: 0;
+  min-width: 320px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+img, svg, video, canvas {
+  max-width: 100%;
+}
+
+button, input, select, textarea {
+  font: inherit;
 }
 
 @layer base {
@@ -18,7 +31,7 @@ body {
 
 @layer components {
   .container-app {
-    @apply max-w-6xl mx-auto px-4;
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
   }
 
   .card {
