@@ -19,9 +19,6 @@ export default function OrganizerLayout() {
       <header className="sticky top-0 z-30 border-b border-white/10 bg-ink-950/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-col items-start gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <Link to="/" className="group flex items-center gap-2.5" aria-label="Mergi la homepage">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-gradient text-base font-black text-white shadow-glow-sm transition group-hover:brightness-110">
-              G
-            </span>
             <span className="font-display text-lg font-extrabold tracking-tight text-white">
               Go-Out <span className="text-wine-300">App</span>
             </span>

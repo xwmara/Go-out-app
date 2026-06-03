@@ -27,9 +27,6 @@ function SearchIcon() {
 function BrandMark() {
   return (
     <Link to="/" className="group flex items-center gap-2.5">
-      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-gradient text-base font-black text-white shadow-glow-sm transition group-hover:brightness-110">
-        G
-      </span>
       <span className="font-display text-lg font-extrabold tracking-tight text-white">
         Go-Out <span className="text-wine-300">App</span>
       </span>
