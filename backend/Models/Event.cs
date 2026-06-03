@@ -11,6 +11,8 @@ namespace Go_OutAppBackend.Models
         public string Description { get; set; } = string.Empty;
         public string Status { get; set; } = "draft";
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        // Set the first time the event is published; once set, the event can no longer go back to draft.
+        public DateTime? PublishedAt { get; set; }
         public string ImageUrl { get; set; } = string.Empty;
         public string PerformersJson { get; set; } = "[]";
         public string TicketTypesJson { get; set; } = "[]";

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 
 namespace Go_OutAppBackend.Controllers
 {
@@ -15,6 +16,7 @@ namespace Go_OutAppBackend.Controllers
     public class TicketsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
         public TicketsController(ApplicationDbContext context)
         {
@@ -151,27 +153,124 @@ namespace Go_OutAppBackend.Controllers
                 return NotFound(new { message = "Event not found." });
             }
 
-            if (eventEntity.AvailableSeats < dto.Quantity)
+            // Resolve the selected ticket type from the event's JSON definition (if any).
+            var ticketTypes = DeserializeTicketTypes(eventEntity.TicketTypesJson);
+            EventTicketTypeDto? selected = null;
+            if (ticketTypes.Count > 0)
             {
-                return BadRequest(new { message = "Not enough tickets available." });
+                selected = ticketTypes.FirstOrDefault(t => !string.IsNullOrEmpty(dto.TicketTypeId) && t.Id == dto.TicketTypeId)
+                    ?? ticketTypes.FirstOrDefault(t => t.Name == dto.TicketTypeName)
+                    ?? ticketTypes.FirstOrDefault();
             }
+
+            decimal unitPrice;
+            if (selected != null)
+            {
+                // Server-side sold-out / availability validation (cannot be bypassed by direct requests).
+                var soldOut = selected.SoldOut || (selected.AvailableQuantity.HasValue && selected.AvailableQuantity.Value <= 0);
+                if (soldOut)
+                {
+                    return BadRequest(new { message = "Acest tip de bilet este SOLD OUT." });
+                }
+
+                if (selected.AvailableQuantity.HasValue && selected.AvailableQuantity.Value < dto.Quantity)
+                {
+                    return BadRequest(new { message = "Nu mai sunt suficiente bilete disponibile pentru acest tip." });
+                }
+
+                // Authoritative price comes from the server, not from the client payload.
+                unitPrice = selected.Price;
+            }
+            else
+            {
+                // Legacy single-price event: rely on the aggregate seat pool.
+                if (eventEntity.AvailableSeats < dto.Quantity)
+                {
+                    return BadRequest(new { message = "Not enough tickets available." });
+                }
+
+                unitPrice = eventEntity.Price > 0 ? eventEntity.Price : dto.UnitPrice;
+            }
+
+            // Optional discount code, validated and applied server-side.
+            string? appliedDiscountCode = null;
+            var subtotal = unitPrice * dto.Quantity;
+            var effectiveTotal = subtotal;
+
+            if (!string.IsNullOrWhiteSpace(dto.DiscountCode))
+            {
+                var normalizedCode = dto.DiscountCode.Trim().ToUpperInvariant();
+                var discount = await _context.Discounts
+                    .FirstOrDefaultAsync(d => d.Code == normalizedCode && (d.EventId == null || d.EventId == eventId));
+
+                if (discount is null)
+                {
+                    return BadRequest(new { message = "Codul de reducere nu exista." });
+                }
+
+                var validationError = discount.GetValidationError(eventId, DateTime.UtcNow);
+                if (validationError != null)
+                {
+                    return BadRequest(new { message = validationError });
+                }
+
+                var discountAmount = discount.ComputeDiscount(subtotal);
+                effectiveTotal = Math.Max(0m, subtotal - discountAmount);
+                discount.UsedCount += 1;
+                appliedDiscountCode = discount.Code;
+            }
+
+            var effectiveUnitPrice = dto.Quantity > 0
+                ? Math.Round(effectiveTotal / dto.Quantity, 2, MidpointRounding.AwayFromZero)
+                : effectiveTotal;
 
             var ticket = new Ticket
             {
                 EventId = eventEntity.Id,
                 UserId = userId.Value,
                 Quantity = dto.Quantity,
-                TicketTypeName = dto.TicketTypeName,
-                UnitPrice = dto.UnitPrice,
+                TicketTypeName = selected?.Name ?? (string.IsNullOrWhiteSpace(dto.TicketTypeName) ? "General Access" : dto.TicketTypeName),
+                UnitPrice = effectiveUnitPrice,
+                DiscountCode = appliedDiscountCode,
                 PurchaseDate = DateTime.UtcNow
             };
 
-            eventEntity.AvailableSeats -= dto.Quantity;
+            // Decrement stock: per-type when tracked, plus the aggregate seat pool for overview continuity.
+            if (selected != null && selected.AvailableQuantity.HasValue)
+            {
+                selected.AvailableQuantity = Math.Max(0, selected.AvailableQuantity.Value - dto.Quantity);
+                if (selected.AvailableQuantity.Value <= 0)
+                {
+                    selected.SoldOut = true;
+                }
+
+                eventEntity.TicketTypesJson = JsonSerializer.Serialize(ticketTypes, JsonOptions);
+            }
+
+            eventEntity.AvailableSeats = Math.Max(0, eventEntity.AvailableSeats - dto.Quantity);
+
             _context.Tickets.Add(ticket);
             await _context.SaveChangesAsync();
 
             await _context.Entry(ticket).Reference(t => t.Event).LoadAsync();
             return Ok(MapTicket(ticket));
+        }
+
+        private static List<EventTicketTypeDto> DeserializeTicketTypes(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return new List<EventTicketTypeDto>();
+            }
+
+            try
+            {
+                return JsonSerializer.Deserialize<List<EventTicketTypeDto>>(json, JsonOptions) ?? new List<EventTicketTypeDto>();
+            }
+            catch
+            {
+                return new List<EventTicketTypeDto>();
+            }
         }
 
         private int? GetCurrentUserId()
@@ -200,6 +299,7 @@ namespace Go_OutAppBackend.Controllers
                 Quantity = ticket.Quantity,
                 UnitPrice = ticket.UnitPrice,
                 TotalPrice = ticket.UnitPrice * ticket.Quantity,
+                DiscountCode = ticket.DiscountCode,
                 PurchasedAt = ticket.PurchaseDate.ToString("O"),
                 TicketCode = ticketCode,
                 QrCodeValue = qrCodeValue,

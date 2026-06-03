@@ -206,7 +206,18 @@ namespace Go_OutAppBackend.Controllers
                 return BadRequest(new { message = "Invalid status." });
             }
 
+            // Once an event has been published, it can no longer be moved back to draft.
+            if (dto.Status == "draft" && eventEntity.PublishedAt != null)
+            {
+                return BadRequest(new { message = "Evenimentul a fost deja publicat si nu mai poate reveni la draft. Il poti edita sau sterge." });
+            }
+
             eventEntity.Status = dto.Status;
+            if (dto.Status == "published" && eventEntity.PublishedAt == null)
+            {
+                eventEntity.PublishedAt = DateTime.UtcNow;
+            }
+
             await _context.SaveChangesAsync();
 
             return Ok(MapEvent(eventEntity));
@@ -475,6 +486,8 @@ namespace Go_OutAppBackend.Controllers
                 Date = eventEntity.Date.ToString("yyyy-MM-dd"),
                 Description = eventEntity.Description,
                 Status = eventEntity.Status,
+                WasPublished = eventEntity.PublishedAt != null,
+                PublishedAt = eventEntity.PublishedAt?.ToString("O"),
                 OrganizerId = eventEntity.OrganizerId.ToString(),
                 CreatedAt = eventEntity.CreatedAt.ToString("O"),
                 TicketPrice = eventEntity.Price,

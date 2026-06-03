@@ -13,6 +13,7 @@ namespace Go_OutAppBackend.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<Ticket> Tickets { get; set; }
+        public DbSet<Discount> Discounts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -47,6 +48,19 @@ namespace Go_OutAppBackend.Data
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
                 .IsUnique();
+
+            modelBuilder.Entity<Discount>()
+                .Property(d => d.Value)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Discount>()
+                .HasIndex(d => d.Code);
+
+            modelBuilder.Entity<Discount>()
+                .HasOne(d => d.Event)
+                .WithMany()
+                .HasForeignKey(d => d.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

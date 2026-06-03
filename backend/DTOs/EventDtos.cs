@@ -8,6 +8,10 @@ namespace Go_OutAppBackend.DTOs
         public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public decimal Price { get; set; }
+        // null = unlimited / not tracked per type (legacy events fall back to the event seat pool)
+        public int? AvailableQuantity { get; set; }
+        public string? Description { get; set; }
+        public bool SoldOut { get; set; }
     }
 
     public class EventDto
@@ -21,6 +25,8 @@ namespace Go_OutAppBackend.DTOs
         public string Date { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string Status { get; set; } = "draft";
+        public bool WasPublished { get; set; }
+        public string? PublishedAt { get; set; }
         public string? OrganizerId { get; set; }
         public string CreatedAt { get; set; } = string.Empty;
         public decimal? TicketPrice { get; set; }
@@ -83,9 +89,52 @@ namespace Go_OutAppBackend.DTOs
     public class PurchaseTicketDto
     {
         public string EventId { get; set; } = string.Empty;
+        public string? TicketTypeId { get; set; }
         public string TicketTypeName { get; set; } = string.Empty;
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
+        public string? DiscountCode { get; set; }
+    }
+
+    public class DiscountDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Code { get; set; } = string.Empty;
+        public string DiscountType { get; set; } = "percent";
+        public decimal Value { get; set; }
+        public string? ExpiresAt { get; set; }
+        public int? MaxUses { get; set; }
+        public int UsedCount { get; set; }
+        public string? EventId { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class CreateDiscountDto
+    {
+        public string Code { get; set; } = string.Empty;
+        public string DiscountType { get; set; } = "percent";
+        public decimal Value { get; set; }
+        public string? ExpiresAt { get; set; }
+        public int? MaxUses { get; set; }
+        public string? EventId { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class ValidateDiscountDto
+    {
+        public string Code { get; set; } = string.Empty;
+        public string EventId { get; set; } = string.Empty;
+        public decimal Subtotal { get; set; }
+    }
+
+    public class ValidateDiscountResultDto
+    {
+        public bool Valid { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public string? Code { get; set; }
+        public string? DiscountType { get; set; }
+        public decimal? Value { get; set; }
+        public decimal DiscountAmount { get; set; }
     }
 
     public class SendInvitationDto
@@ -117,6 +166,7 @@ namespace Go_OutAppBackend.DTOs
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
         public decimal TotalPrice { get; set; }
+        public string? DiscountCode { get; set; }
         public string PurchasedAt { get; set; } = string.Empty;
         public string TicketCode { get; set; } = string.Empty;
         public string QrCodeValue { get; set; } = string.Empty;
