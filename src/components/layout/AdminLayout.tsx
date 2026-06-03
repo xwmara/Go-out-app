@@ -6,23 +6,30 @@ export default function AdminLayout() {
   const dispatch = useAppDispatch();
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <header className="border-b border-slate-800">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link to="/admin" className="text-xl font-bold">
-            GoOut Admin
+    <div className="relative min-h-screen bg-ink-950 text-slate-100">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-ink-radial" />
+
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-ink-950/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+          <Link to="/admin" className="group flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-gradient text-base font-black text-white shadow-glow-sm transition group-hover:brightness-110">
+              G
+            </span>
+            <span className="font-display text-lg font-extrabold tracking-tight text-white">
+              Go-Out <span className="text-wine-300">App</span>
+              <span className="ml-2 rounded-full border border-white/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Admin
+              </span>
+            </span>
           </Link>
 
-          <button
-            onClick={() => dispatch(logout())}
-            className="rounded-lg bg-white px-4 py-2 text-slate-900 hover:bg-slate-200"
-          >
+          <button onClick={() => dispatch(logout())} className="btn-outline">
             Logout
           </button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <Outlet />
       </main>
     </div>

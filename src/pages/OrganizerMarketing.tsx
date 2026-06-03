@@ -158,75 +158,73 @@ export default function OrganizerMarketing() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-[2rem] bg-white p-8 shadow-[0_30px_80px_rgba(15,23,42,0.12)]">
-        <p className="text-sm uppercase tracking-[0.25em] text-slate-400">Marketing</p>
-        <div className="mt-2 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <h1 className="text-4xl font-black text-slate-950">Clienti</h1>
-            <p className="mt-2 text-3xl font-black text-slate-400">{customers.length}</p>
-            <p className="mt-3 max-w-3xl text-slate-600">
-              Baza de clienti care au cumparat bilete la evenimentele tale. Poti cauta, filtra pe eveniment si exporta lista pentru campanii.
-            </p>
+      <section className="card relative animate-fade-up overflow-hidden p-6 sm:p-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(207,47,99,0.18),transparent_50%)]" />
+        <div className="relative">
+          <p className="eyebrow">Marketing</p>
+          <div className="mt-2 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h1 className="font-display text-4xl font-extrabold text-white">Clienti</h1>
+              <p className="mt-2 font-display text-3xl font-extrabold text-slate-500">{customers.length}</p>
+              <p className="mt-3 max-w-3xl text-slate-400">
+                Baza de clienti care au cumparat bilete la evenimentele tale. Poti cauta, filtra pe eveniment si exporta lista pentru campanii.
+              </p>
+            </div>
+            <Link to="/organizer/events/create" className="btn-primary">
+              Creeaza eveniment
+            </Link>
           </div>
-          <Link
-            to="/organizer/events/create"
-            className="inline-flex rounded-full bg-[linear-gradient(135deg,#7c3aed,#111827)] px-5 py-3 font-semibold text-white shadow-lg shadow-violet-200 transition hover:opacity-95"
-          >
-            Creeaza eveniment
-          </Link>
         </div>
       </section>
 
-      <section className="grid gap-6 md:grid-cols-3">
-        <article className="rounded-[1.5rem] bg-white p-6 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-          <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Clienti unici</p>
-          <p className="mt-3 text-4xl font-black text-slate-950">{customers.length}</p>
-        </article>
-        <article className="rounded-[1.5rem] bg-white p-6 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-          <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Bilete cumparate</p>
-          <p className="mt-3 text-4xl font-black text-slate-950">{totalTickets}</p>
-        </article>
-        <article className="rounded-[1.5rem] bg-white p-6 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-          <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Cheltuiala totala</p>
-          <p className="mt-3 text-4xl font-black text-slate-950">{formatCurrency(totalSpent)}</p>
-        </article>
+      <section className="grid gap-5 md:grid-cols-3">
+        {[
+          { label: "Clienti unici", value: String(customers.length) },
+          { label: "Bilete cumparate", value: String(totalTickets) },
+          { label: "Cheltuiala totala", value: formatCurrency(totalSpent) },
+        ].map((stat, index) => (
+          <article key={stat.label} className="card animate-fade-up p-6" style={{ animationDelay: `${index * 0.06}s` }}>
+            <p className="eyebrow">{stat.label}</p>
+            <p className="mt-3 font-display text-4xl font-extrabold text-white">{stat.value}</p>
+          </article>
+        ))}
       </section>
 
-      <section className="rounded-[2rem] bg-white p-6 shadow-[0_24px_70px_rgba(15,23,42,0.1)]">
+      <section className="card p-6">
         <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
-          <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition focus-within:border-wine-400/70">
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Cauta client... (Nume, email, eveniment)"
-              className="min-w-0 flex-1 bg-transparent text-base font-semibold text-slate-900 outline-none placeholder:text-slate-400"
+              className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-slate-500"
             />
-            <SearchIcon />
+            <span className="text-slate-400"><SearchIcon /></span>
           </label>
 
           <select
             value={selectedEventId}
             onChange={(event) => setSelectedEventId(event.target.value)}
-            className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-700 outline-none focus:border-violet-400"
+            className="input font-semibold"
           >
-            <option value="all">Toate evenimentele</option>
+            <option value="all" className="bg-ink-800">Toate evenimentele</option>
             {events.map((event) => (
-              <option key={event.id} value={event.id}>{event.title}</option>
+              <option key={event.id} value={event.id} className="bg-ink-800">{event.title}</option>
             ))}
           </select>
         </div>
 
-        <div className="mt-5 grid overflow-hidden rounded-2xl border border-slate-200 md:grid-cols-2">
-          <button type="button" className="border-b border-slate-200 px-5 py-4 text-xl font-black text-slate-800 md:border-b-0 md:border-r">
+        <div className="mt-5 grid overflow-hidden rounded-2xl border border-white/10 md:grid-cols-2">
+          <button type="button" className="border-b border-white/10 px-5 py-4 text-lg font-bold text-slate-200 md:border-b-0 md:border-r">
             Filtreaza
           </button>
-          <button type="button" onClick={exportCustomers} className="px-5 py-4 text-xl font-black text-slate-800 hover:bg-slate-50">
+          <button type="button" onClick={exportCustomers} className="px-5 py-4 text-lg font-bold text-slate-200 transition hover:bg-white/5">
             Export
           </button>
         </div>
 
-        <div className="mt-6 overflow-hidden">
-          <div className="grid grid-cols-[1.4fr_120px_160px_120px_150px] px-5 py-3 text-sm font-black text-slate-500">
+        <div className="mt-6">
+          <div className="hidden grid-cols-[1.4fr_120px_160px_120px_150px] px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-slate-500 md:grid">
             <span>Nume</span>
             <span>Nr.Bilete</span>
             <span>Cheltuiala totala</span>
@@ -235,42 +233,42 @@ export default function OrganizerMarketing() {
           </div>
 
           {loading ? (
-            <div className="rounded-2xl border border-slate-200 px-5 py-8 text-slate-500">Se incarca baza de clienti...</div>
+            <div className="rounded-2xl border border-white/10 px-5 py-8 text-slate-400">Se incarca baza de clienti...</div>
           ) : filteredCustomers.length === 0 ? (
-            <div className="rounded-2xl border border-slate-200 px-5 py-8 text-slate-500">
+            <div className="rounded-2xl border border-white/10 px-5 py-8 text-slate-400">
               Nu exista clienti pentru filtrul selectat. Cumparaturile apar aici dupa ce clientii cumpara bilete.
             </div>
           ) : (
             <div className="space-y-3">
               {filteredCustomers.map((customer) => (
-                <article key={customer.id} className="rounded-[1.5rem] border border-slate-200 px-5 py-4">
+                <article key={customer.id} className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 transition hover:border-white/20">
                   <div className="grid items-center gap-3 md:grid-cols-[1.4fr_120px_160px_120px_150px]">
                     <div className="flex items-center gap-3">
-                      <span className="h-4 w-4 rounded-full bg-violet-600" />
+                      <span className="h-3 w-3 shrink-0 rounded-full bg-wine-500" />
                       <div>
-                        <p className="font-black text-slate-950">{customer.name}</p>
-                        <p className="text-sm text-slate-500">{customer.email}</p>
+                        <p className="font-bold text-white">{customer.name}</p>
+                        <p className="text-sm text-slate-400">{customer.email}</p>
                       </div>
                     </div>
-                    <span className="font-black text-slate-800">{customer.tickets}</span>
-                    <span className="font-black text-slate-800">{formatCurrency(customer.spent)}</span>
-                    <a href={`mailto:${customer.email}`} className="text-slate-700 hover:text-violet-700" aria-label={`Trimite email catre ${customer.name}`}>
+                    <span className="font-bold text-slate-200">{customer.tickets}</span>
+                    <span className="font-bold text-slate-200">{formatCurrency(customer.spent)}</span>
+                    <a href={`mailto:${customer.email}`} className="text-slate-400 transition hover:text-wine-300" aria-label={`Trimite email catre ${customer.name}`}>
                       <MailIcon />
                     </a>
                     <button
                       type="button"
                       onClick={() => setExpandedCustomerId(expandedCustomerId === customer.id ? null : customer.id)}
-                      className="text-left font-black text-violet-700 hover:text-violet-900"
+                      className="text-left font-bold text-wine-300 transition hover:text-white"
                     >
                       Vezi comenzi
                     </button>
                   </div>
 
                   {expandedCustomerId === customer.id ? (
-                    <div className="mt-4 rounded-2xl bg-slate-50 p-4">
+                    <div className="mt-4 rounded-2xl border border-white/10 bg-ink-900/50 p-4">
                       {customer.orders.map((order) => (
-                        <div key={order.ticketId} className="grid gap-2 border-b border-slate-200 py-3 text-sm last:border-b-0 md:grid-cols-[1fr_120px_120px_160px]">
-                          <span className="font-semibold text-slate-800">{order.ticketTypeName}</span>
+                        <div key={order.ticketId} className="grid gap-2 border-b border-white/10 py-3 text-sm text-slate-300 last:border-b-0 md:grid-cols-[1fr_120px_120px_160px]">
+                          <span className="font-semibold text-white">{order.ticketTypeName}</span>
                           <span>{order.quantity} bilete</span>
                           <span>{formatCurrency(order.totalPrice)}</span>
                           <span className="text-slate-500">{new Date(order.purchasedAt).toLocaleDateString("ro-RO")}</span>
@@ -286,15 +284,15 @@ export default function OrganizerMarketing() {
       </section>
 
       <section className="grid gap-6 md:grid-cols-2">
-        <article className="rounded-[1.75rem] bg-white p-6 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-          <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Acoperire</p>
-          <h2 className="mt-2 text-2xl font-bold text-slate-950">Evenimente si orase active</h2>
-          <p className="mt-3 text-slate-600">Ai {publishedEvents.length} evenimente publicate in {visibleCities} orase.</p>
+        <article className="card p-6">
+          <p className="eyebrow">Acoperire</p>
+          <h2 className="mt-2 font-display text-2xl font-bold text-white">Evenimente si orase active</h2>
+          <p className="mt-3 text-slate-400">Ai {publishedEvents.length} evenimente publicate in {visibleCities} orase.</p>
         </article>
-        <article className="rounded-[1.75rem] bg-white p-6 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-          <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Urmatorul pas</p>
-          <h2 className="mt-2 text-2xl font-bold text-slate-950">Campanii si notificari</h2>
-          <p className="mt-3 text-slate-600">Clientii din tabel pot fi folositi pentru invitatii, notificari si exporturi pentru campanii.</p>
+        <article className="card p-6">
+          <p className="eyebrow">Urmatorul pas</p>
+          <h2 className="mt-2 font-display text-2xl font-bold text-white">Campanii si notificari</h2>
+          <p className="mt-3 text-slate-400">Clientii din tabel pot fi folositi pentru invitatii, notificari si exporturi pentru campanii.</p>
         </article>
       </section>
     </div>

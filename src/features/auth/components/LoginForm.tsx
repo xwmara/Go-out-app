@@ -84,7 +84,7 @@ export default function LoginForm() {
       <RoleSelector selectedRole={role} onChange={setRole} />
 
       <div>
-        <label htmlFor="email" className="mb-2 block text-sm font-medium text-slate-700">
+        <label htmlFor="email" className="field-label">
           Email
         </label>
         <input
@@ -93,13 +93,13 @@ export default function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="exemplu@email.com"
-          className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900"
+          className="input"
         />
-        {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
+        {errors.email && <p className="mt-1 text-sm text-rose-400">{errors.email}</p>}
       </div>
 
       <div>
-        <label htmlFor="password" className="mb-2 block text-sm font-medium text-slate-700">
+        <label htmlFor="password" className="field-label">
           Parolă
         </label>
         <input
@@ -108,21 +108,21 @@ export default function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Introdu parola"
-          className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-900"
+          className="input"
         />
-        {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
+        {errors.password && <p className="mt-1 text-sm text-rose-400">{errors.password}</p>}
       </div>
 
       {authError && (
-        <p className="text-sm text-red-500">{authError}</p>
+        <p className="text-sm text-rose-400">{authError}</p>
       )}
 
       <div className="flex items-center justify-between text-sm">
-        <button type="button" className="text-slate-500 hover:text-slate-900">
+        <button type="button" className="text-slate-400 transition hover:text-white">
           Ai uitat parola?
         </button>
 
-        <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-700">
+        <Link to="/register" className="font-medium text-wine-300 transition hover:text-wine-200">
           Creează cont
         </Link>
       </div>
@@ -130,7 +130,7 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="w-full rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+        className="btn-primary w-full py-3"
       >
         {status === "loading" ? "Se conectează..." : "Conectează-te"}
       </button>

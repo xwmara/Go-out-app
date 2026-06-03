@@ -6,9 +6,6 @@ import { selectAuthError, selectAuthStatus, selectCurrentUser } from "../feature
 import { clearAuthError, updateProfile } from "../features/auth/authSlice";
 import { selectCurrentUserTickets } from "../features/tickets/ticketSelectors";
 
-const primaryButtonClass =
-  "inline-flex rounded-full bg-[linear-gradient(135deg,#7c3aed,#111827)] px-5 py-3 font-semibold text-white shadow-lg shadow-violet-200 transition hover:opacity-95";
-
 export default function Profile() {
   const dispatch = useAppDispatch();
   const location = useLocation();
@@ -73,78 +70,74 @@ export default function Profile() {
 
   return (
     <div className="space-y-8">
-      <div className="rounded-[2rem] bg-white p-8 shadow-[0_30px_80px_rgba(15,23,42,0.12)]">
-        <p className="text-sm uppercase tracking-[0.25em] text-slate-400">
-          {isOrganizerArea ? "Profil organizer" : "Profilul meu"}
-        </p>
-        <h1 className="mt-2 text-4xl font-black text-slate-950">
-          {currentUser?.name ?? (isOrganizerArea ? "Organizer" : "Client")}
-        </h1>
-        <p className="mt-3 text-slate-600">
-          Aici iti poti actualiza informatiile de cont si poti verifica rapid statusul profilului tau.
-        </p>
-        <Link
-          to={isOrganizerArea ? "/organizer/dashboard" : "/events"}
-          className={`mt-6 ${primaryButtonClass}`}
-        >
-          {isOrganizerArea ? "Inapoi la dashboard" : "Exploreaza evenimente"}
-        </Link>
+      <div className="relative animate-fade-up overflow-hidden rounded-4xl border border-white/10 bg-ink-850/60 p-6 shadow-card sm:rounded-5xl sm:p-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(207,47,99,0.22),transparent_50%)]" />
+        <div className="relative">
+          <p className="eyebrow">{isOrganizerArea ? "Profil organizer" : "Profilul meu"}</p>
+          <h1 className="mt-2 font-display text-4xl font-extrabold text-white">
+            {currentUser?.name ?? (isOrganizerArea ? "Organizer" : "Client")}
+          </h1>
+          <p className="mt-3 text-slate-300">
+            Aici iti poti actualiza informatiile de cont si poti verifica rapid statusul profilului tau.
+          </p>
+          <Link to={isOrganizerArea ? "/organizer/dashboard" : "/events"} className="btn-primary mt-6">
+            {isOrganizerArea ? "Inapoi la dashboard" : "Exploreaza evenimente"}
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <section className="rounded-[1.5rem] bg-white p-6 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-          <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Editeaza profilul</p>
+        <section className="card animate-fade-up p-6" style={{ animationDelay: "0.05s" }}>
+          <p className="eyebrow">Editeaza profilul</p>
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">Nume</label>
+              <label className="field-label">Nume</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+                className="input"
                 placeholder="Nume complet"
               />
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">Email</label>
+              <label className="field-label">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+                className="input"
                 placeholder="exemplu@email.com"
               />
             </div>
 
-            {validationError ? <p className="text-sm text-red-500">{validationError}</p> : null}
-            {authError ? <p className="text-sm text-red-500">{authError}</p> : null}
-            {successMessage ? <p className="text-sm text-emerald-600">{successMessage}</p> : null}
+            {validationError ? <p className="text-sm text-rose-400">{validationError}</p> : null}
+            {authError ? <p className="text-sm text-rose-400">{authError}</p> : null}
+            {successMessage ? <p className="text-sm text-emerald-300">{successMessage}</p> : null}
 
             <button
               type="submit"
               disabled={authStatus === "loading"}
-              className="rounded-full bg-[linear-gradient(135deg,#7c3aed,#111827)] px-5 py-3 font-semibold text-white shadow-lg shadow-violet-200 transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-primary py-3"
             >
               {authStatus === "loading" ? "Se salveaza..." : "Salveaza modificarile"}
             </button>
           </form>
         </section>
 
-        <section className="grid gap-6">
-          <div className="rounded-[1.5rem] bg-white p-6 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Email actual</p>
-            <p className="mt-3 text-lg font-bold text-slate-950">{currentUser?.email}</p>
+        <section className="grid gap-5">
+          <div className="card animate-fade-up p-6" style={{ animationDelay: "0.1s" }}>
+            <p className="eyebrow">Email actual</p>
+            <p className="mt-3 text-lg font-bold text-white">{currentUser?.email}</p>
           </div>
-          <div className="rounded-[1.5rem] bg-white p-6 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Rol</p>
-            <p className="mt-3 text-lg font-bold capitalize text-slate-950">{currentUser?.role}</p>
+          <div className="card animate-fade-up p-6" style={{ animationDelay: "0.15s" }}>
+            <p className="eyebrow">Rol</p>
+            <p className="mt-3 text-lg font-bold capitalize text-white">{currentUser?.role}</p>
           </div>
-          <div className="rounded-[1.5rem] bg-white p-6 shadow-[0_18px_48px_rgba(15,23,42,0.08)]">
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-400">
-              {isOrganizerArea ? "Activitate cont" : "Bilete cumparate"}
-            </p>
-            <p className="mt-3 text-lg font-bold text-slate-950">{myTickets.length}</p>
+          <div className="card animate-fade-up p-6" style={{ animationDelay: "0.2s" }}>
+            <p className="eyebrow">{isOrganizerArea ? "Activitate cont" : "Bilete cumparate"}</p>
+            <p className="mt-3 text-lg font-bold text-white">{myTickets.length}</p>
           </div>
         </section>
       </div>

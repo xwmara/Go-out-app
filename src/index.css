@@ -6,6 +6,10 @@ html, body, #root {
   height: 100%;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -25,32 +29,138 @@ button, input, select, textarea {
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply bg-ink-950 font-sans text-slate-100 antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight;
+  }
+
+  ::selection {
+    background-color: rgba(183, 30, 76, 0.45);
+    color: #fff;
+  }
+
+  /* Respect users who prefer reduced motion: disable looping/entrance animations */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Subtle custom scrollbar that matches the dark theme */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.14);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.24);
   }
 }
 
 @layer components {
   .container-app {
-    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
   }
 
+  /* Small uppercase eyebrow label used across sections */
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.28em] text-wine-300/80;
+  }
+
+  /* Surface cards on the dark theme */
   .card {
-    @apply bg-white border border-gray-200 rounded-xl shadow-sm;
+    @apply rounded-3xl border border-white/10 bg-ink-850/80 shadow-card backdrop-blur-sm;
   }
 
+  .card-hover {
+    @apply transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:shadow-elevated;
+  }
+
+  /* Buttons */
   .btn {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 font-medium transition;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-wine-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-primary {
-    @apply btn bg-black text-white hover:bg-gray-800;
+    @apply btn bg-brand-gradient text-white shadow-glow hover:shadow-glow-sm hover:brightness-110 active:brightness-95;
   }
 
   .btn-outline {
-    @apply btn border border-gray-300 hover:bg-gray-100;
+    @apply btn border border-white/[0.15] bg-white/5 text-slate-100 hover:border-white/30 hover:bg-white/10;
+  }
+
+  .btn-ghost {
+    @apply btn text-slate-300 hover:bg-white/5 hover:text-white;
+  }
+
+  /* Form controls */
+  .field-label {
+    @apply mb-2 block text-sm font-medium text-slate-300;
   }
 
   .input {
-    @apply w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black;
+    @apply w-full rounded-xl border border-white/[0.12] bg-white/5 px-4 py-3 text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-wine-400/70 focus:ring-2 focus:ring-wine-500/20;
+  }
+
+  /* Status pills */
+  .pill {
+    @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold;
+  }
+  .pill-live {
+    @apply pill bg-emerald-400/[0.15] text-emerald-300;
+  }
+  .pill-draft {
+    @apply pill bg-amber-400/[0.15] text-amber-300;
+  }
+
+  /* Gradient text accent */
+  .text-gradient {
+    @apply bg-gradient-to-r from-wine-300 via-wine-400 to-wine-200 bg-clip-text text-transparent;
+  }
+
+  /* Consistent vertical rhythm for stacked homepage sections */
+  .section-stack {
+    @apply space-y-16 sm:space-y-24;
+  }
+}
+
+@layer utilities {
+  /* Fade the left/right edges of a marquee track into the background */
+  .marquee-mask {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 8%,
+      #000 92%,
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 8%,
+      #000 92%,
+      transparent
+    );
+  }
+
+  .pause-on-hover:hover * {
+    animation-play-state: paused;
   }
 }

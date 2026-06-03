@@ -47,8 +47,8 @@ function StatusLabel({ status }: { status: EventItem["status"] }) {
   const isPublished = status === "published";
 
   return (
-    <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-sm font-black text-slate-950 shadow-sm">
-      <span className={`h-3 w-3 rounded-full ${isPublished ? "bg-emerald-400" : "bg-amber-400"}`} />
+    <span className={isPublished ? "pill-live" : "pill-draft"}>
+      <span className={`h-2.5 w-2.5 rounded-full ${isPublished ? "bg-emerald-400" : "bg-amber-400"}`} />
       {isPublished ? "Live" : "Draft"}
     </span>
   );
@@ -77,38 +77,35 @@ export default function OrganizerDashboard() {
     await dispatch(deleteEvent(eventId));
   };
 
+  const iconButtonClass =
+    "inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:border-white/25 hover:bg-white/10 hover:text-white";
+
   return (
     <div className="space-y-6 pb-8 sm:space-y-8 sm:pb-10">
-      <section className="flex flex-col gap-5 rounded-2xl bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.09)] sm:rounded-[1.75rem] sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+      <section className="card animate-fade-up flex flex-col gap-5 p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-sm uppercase tracking-[0.25em] text-slate-400">Dashboard</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Evenimente listate</h1>
-          <p className="mt-3 max-w-2xl text-slate-600">
+          <p className="eyebrow">Dashboard</p>
+          <h1 className="mt-2 font-display text-3xl font-extrabold text-white sm:text-4xl">Evenimente listate</h1>
+          <p className="mt-3 max-w-2xl text-slate-400">
             Vezi evenimentele postate si intra in zona de administrare pentru statistici, bilete, fiscalizare si promovare.
           </p>
         </div>
-        <Link
-          to="/organizer/events/create"
-          className="inline-flex w-full items-center justify-center rounded-full bg-[linear-gradient(135deg,#7c3aed,#111827)] px-6 py-3 text-base font-black text-white shadow-lg shadow-violet-200 transition hover:opacity-95 sm:w-auto sm:px-7"
-        >
+        <Link to="/organizer/events/create" className="btn-primary w-full px-6 py-3 text-base sm:w-auto">
           + Listeaza eveniment
         </Link>
       </section>
 
       {sortedEvents.length === 0 ? (
-        <section className="rounded-[1.75rem] bg-white p-8 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-          <h2 className="text-2xl font-black text-slate-950">Nu ai inca evenimente listate</h2>
-          <p className="mt-3 max-w-xl text-slate-600">Creeaza primul eveniment si el va aparea aici, in dashboardul organizatorului.</p>
-          <Link
-            to="/organizer/events/create"
-            className="mt-6 inline-flex rounded-full bg-[linear-gradient(135deg,#7c3aed,#111827)] px-6 py-3 font-black text-white shadow-lg shadow-violet-200 transition hover:opacity-95"
-          >
+        <section className="card p-8">
+          <h2 className="font-display text-2xl font-bold text-white">Nu ai inca evenimente listate</h2>
+          <p className="mt-3 max-w-xl text-slate-400">Creeaza primul eveniment si el va aparea aici, in dashboardul organizatorului.</p>
+          <Link to="/organizer/events/create" className="btn-primary mt-6">
             Creeaza eveniment nou
           </Link>
         </section>
       ) : (
-        <section className="space-y-7">
-          {sortedEvents.map((event) => (
+        <section className="space-y-5">
+          {sortedEvents.map((event, index) => (
             <article
               key={event.id}
               role="button"
@@ -120,19 +117,15 @@ export default function OrganizerDashboard() {
                   goToEventWorkspace(event.id);
                 }
               }}
-              className="group relative overflow-hidden rounded-2xl bg-white shadow-[0_24px_70px_rgba(15,23,42,0.12)] outline-none transition hover:-translate-y-1 hover:shadow-[0_30px_85px_rgba(15,23,42,0.16)] focus-visible:ring-2 focus-visible:ring-violet-300 sm:rounded-[1.75rem] md:min-h-[300px]"
+              className="group card card-hover animate-fade-up cursor-pointer overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-wine-400/70"
+              style={{ animationDelay: `${Math.min(index, 8) * 0.05}s` }}
             >
-              {event.imageUrl ? (
-                <img src={event.imageUrl} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-55 blur-2xl" />
-              ) : (
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_45%,rgba(124,58,237,0.35),transparent_30%),linear-gradient(135deg,#2f185f,#0f172a)]" />
-              )}
-              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.94)_33%,rgba(255,255,255,0.74)_57%,rgba(255,255,255,0.46)_100%)]" />              <div className="relative grid gap-5 p-4 sm:p-6 md:min-h-[300px] md:grid-cols-[200px_1fr] md:items-center lg:grid-cols-[230px_1fr_180px] lg:p-7">
-                <div className="aspect-[4/3] overflow-hidden rounded-[1.15rem] bg-slate-100 shadow-[0_20px_50px_rgba(15,23,42,0.16)] md:h-[250px] md:aspect-auto">
+              <div className="grid gap-5 p-4 sm:p-6 md:grid-cols-[220px_1fr] md:items-center lg:grid-cols-[240px_1fr_180px] lg:p-7">
+                <div className="aspect-[4/3] overflow-hidden rounded-2xl border border-white/10 bg-ink-800 shadow-soft md:h-[220px] md:aspect-auto">
                   {event.imageUrl ? (
-                    <img src={event.imageUrl} alt={event.title} className="h-full w-full object-cover" />
+                    <img src={event.imageUrl} alt={event.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                   ) : (
-                    <div className="flex h-full items-center justify-center bg-[linear-gradient(135deg,#7c3aed,#111827)] p-5 text-center text-2xl font-black text-white">
+                    <div className="flex h-full items-center justify-center bg-brand-gradient p-5 text-center text-2xl font-black text-white">
                       {event.title || "Eveniment"}
                     </div>
                   )}
@@ -141,34 +134,34 @@ export default function OrganizerDashboard() {
                 <div className="space-y-4">
                   <div className="flex flex-wrap items-center gap-3">
                     <StatusLabel status={event.status} />
-                    <span className="rounded-full border border-slate-200 bg-white/85 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
                       {event.category || "Eveniment"}
                     </span>
                   </div>
 
                   <div>
-                    <h2 className="max-w-3xl text-2xl font-black leading-tight text-slate-950 sm:text-3xl md:text-4xl">
+                    <h2 className="font-display text-2xl font-extrabold leading-tight text-white sm:text-3xl">
                       {event.title || "Eveniment fara titlu"}
                     </h2>
-                    <p className="mt-2 text-lg font-black text-slate-700">{formatDate(event.date)}</p>
-                    <p className="mt-1 text-sm font-semibold text-slate-500">{event.city} • {event.venueName}</p>
+                    <p className="mt-2 text-lg font-bold text-slate-200">{formatDate(event.date)}</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-400">{event.city} · {event.venueName}</p>
                   </div>
 
-                  <div className="flex flex-wrap gap-3 text-sm font-bold text-slate-600">
-                    <span className="rounded-full border border-slate-200 bg-white/85 px-3 py-1">de la {event.ticketPrice ?? 0} lei</span>
-                    <span className="rounded-full border border-slate-200 bg-white/85 px-3 py-1">{event.availableTickets ?? 0} bilete disponibile</span>
+                  <div className="flex flex-wrap gap-3 text-sm font-semibold text-slate-300">
+                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">de la {event.ticketPrice ?? 0} lei</span>
+                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">{event.availableTickets ?? 0} bilete disponibile</span>
                   </div>
                 </div>
 
                 <div className="flex flex-row flex-wrap items-center justify-between gap-4 md:col-span-2 lg:col-span-1 lg:flex-col lg:items-end lg:justify-start">
-                  <div className="flex items-center gap-3 text-slate-700">
+                  <div className="flex items-center gap-3">
                     <button
                       type="button"
                       onClick={(clickEvent) => {
                         clickEvent.stopPropagation();
                         navigate(`/organizer/events/${event.id}/edit`);
                       }}
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+                      className={iconButtonClass}
                       aria-label={`Editeaza ${event.title}`}
                     >
                       <PencilIcon />
@@ -179,7 +172,7 @@ export default function OrganizerDashboard() {
                         clickEvent.stopPropagation();
                         goToEventWorkspace(event.id);
                       }}
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+                      className={iconButtonClass}
                       aria-label={`Deschide ${event.title}`}
                     >
                       <EyeIcon />
@@ -190,7 +183,7 @@ export default function OrganizerDashboard() {
                         clickEvent.stopPropagation();
                         void handleDelete(event.id, event.title);
                       }}
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-rose-100 bg-white text-rose-600 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-rose-500/20 bg-rose-500/5 text-rose-300 transition hover:border-rose-500/40 hover:bg-rose-500/15 hover:text-rose-200"
                       aria-label={`Sterge ${event.title}`}
                     >
                       <TrashIcon />
@@ -204,7 +197,7 @@ export default function OrganizerDashboard() {
                         clickEvent.stopPropagation();
                         void dispatch(setEventStatus({ id: event.id, status: "published" }));
                       }}
-                      className="rounded-full bg-[linear-gradient(135deg,#7c3aed,#111827)] px-5 py-2 text-sm font-black text-white shadow-lg shadow-violet-200 transition hover:opacity-95"
+                      className="btn-primary"
                     >
                       Publica
                     </button>
@@ -215,7 +208,7 @@ export default function OrganizerDashboard() {
                         clickEvent.stopPropagation();
                         void dispatch(setEventStatus({ id: event.id, status: "draft" }));
                       }}
-                      className="rounded-full border border-slate-200 bg-white px-5 py-2 text-sm font-black text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+                      className="btn-outline"
                     >
                       Draft
                     </button>
@@ -229,4 +222,3 @@ export default function OrganizerDashboard() {
     </div>
   );
 }
-

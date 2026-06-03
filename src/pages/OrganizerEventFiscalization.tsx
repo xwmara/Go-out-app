@@ -21,7 +21,7 @@ const downloadFile = (filename: string, content: string, type = "text/csv;charse
 const csvEscape = (value: string | number) => `"${String(value).replaceAll('"', '""')}"`;
 
 function PurpleShape({ className }: { className: string }) {
-  return <div className={`pointer-events-none absolute rounded-[45%] bg-[#6724e8] opacity-95 ${className}`} />;
+  return <div className={`pointer-events-none absolute rounded-[45%] bg-wine-600 opacity-95 ${className}`} />;
 }
 
 export default function OrganizerEventFiscalization() {
@@ -156,7 +156,7 @@ export default function OrganizerEventFiscalization() {
           <button
             type="button"
             onClick={downloadRegistration}
-            className="justify-self-start rounded-full bg-[#6724e8] px-7 py-3 text-xl font-black text-white shadow-[0_18px_42px_rgba(103,36,232,0.35)] transition hover:bg-[#7c3aed] lg:justify-self-end"
+            className="justify-self-start rounded-full bg-wine-600 px-7 py-3 text-xl font-black text-white shadow-glow transition hover:bg-wine-500 lg:justify-self-end"
           >
             Descarca
           </button>
@@ -180,7 +180,7 @@ export default function OrganizerEventFiscalization() {
           <button
             type="button"
             onClick={downloadSettlement}
-            className="justify-self-start rounded-full bg-[#6724e8] px-7 py-3 text-xl font-black text-white shadow-[0_18px_42px_rgba(103,36,232,0.35)] transition hover:bg-[#7c3aed] lg:justify-self-end"
+            className="justify-self-start rounded-full bg-wine-600 px-7 py-3 text-xl font-black text-white shadow-glow transition hover:bg-wine-500 lg:justify-self-end"
           >
             Descarca
           </button>

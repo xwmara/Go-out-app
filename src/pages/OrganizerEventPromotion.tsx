@@ -9,7 +9,7 @@ type PromotionTab = "invitations" | "notifications";
 type InvitationType = "nominal" | "open" | "guestlist";
 
 function PurpleShape({ className }: { className: string }) {
-  return <div className={`pointer-events-none absolute rounded-[45%] bg-[#6724e8] opacity-95 ${className}`} />;
+  return <div className={`pointer-events-none absolute rounded-[45%] bg-wine-600 opacity-95 ${className}`} />;
 }
 
 export default function OrganizerEventPromotion() {
@@ -147,14 +147,14 @@ export default function OrganizerEventPromotion() {
           <button
             type="button"
             onClick={() => setActiveTab("invitations")}
-            className={`pb-1 transition ${activeTab === "invitations" ? "border-b-2 border-[#6724e8] text-white" : "text-white/75 hover:text-white"}`}
+            className={`pb-1 transition ${activeTab === "invitations" ? "border-b-2 border-wine-500 text-white" : "text-white/75 hover:text-white"}`}
           >
             Trimite invitatii
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("notifications")}
-            className={`pb-1 transition ${activeTab === "notifications" ? "border-b-2 border-[#6724e8] text-white" : "text-white/75 hover:text-white"}`}
+            className={`pb-1 transition ${activeTab === "notifications" ? "border-b-2 border-wine-500 text-white" : "text-white/75 hover:text-white"}`}
           >
             Notificari clienti
           </button>
@@ -176,7 +176,7 @@ export default function OrganizerEventPromotion() {
                 <select
                   value={ticketTypeId}
                   onChange={(event) => setTicketTypeId(event.target.value)}
-                  className="w-full rounded-full border-2 border-white/85 bg-transparent px-4 py-3 text-base font-black text-white outline-none focus:border-[#6724e8] sm:text-xl"
+                  className="w-full rounded-full border-2 border-white/85 bg-transparent px-4 py-3 text-base font-black text-white outline-none focus:border-wine-500 sm:text-xl"
                 >
                   {ticketTypes.map((ticket) => (
                     <option key={ticket.id} value={ticket.id} className="bg-[#111] text-white">
@@ -198,7 +198,7 @@ export default function OrganizerEventPromotion() {
                     onClick={() => setInvitationType(option.key as InvitationType)}
                     className={`rounded-full border-2 px-4 py-3 text-base font-black transition sm:px-5 sm:text-xl ${
                       invitationType === option.key
-                        ? "border-white bg-[#6724e8] text-white"
+                        ? "border-white bg-wine-600 text-white"
                         : "border-white/90 bg-transparent text-white hover:bg-white/10"
                     }`}
                   >
@@ -210,18 +210,18 @@ export default function OrganizerEventPromotion() {
               <div className="space-y-4">
                 {invitationType === "nominal" ? (
                   <>
-                    <input value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Nume" className="w-full rounded-full border-2 border-white/85 bg-transparent px-4 py-3 text-base font-semibold text-white outline-none placeholder:text-white/45 focus:border-[#6724e8] sm:text-xl" />
-                    <input value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="Prenume" className="w-full rounded-full border-2 border-white/85 bg-transparent px-4 py-3 text-base font-semibold text-white outline-none placeholder:text-white/45 focus:border-[#6724e8] sm:text-xl" />
-                    <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email" className="w-full rounded-full border-2 border-white/85 bg-transparent px-4 py-3 text-base font-semibold text-white outline-none placeholder:text-white/45 focus:border-[#6724e8] sm:text-xl" />
+                    <input value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Nume" className="w-full rounded-full border-2 border-white/85 bg-transparent px-4 py-3 text-base font-semibold text-white outline-none placeholder:text-white/45 focus:border-wine-500 sm:text-xl" />
+                    <input value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="Prenume" className="w-full rounded-full border-2 border-white/85 bg-transparent px-4 py-3 text-base font-semibold text-white outline-none placeholder:text-white/45 focus:border-wine-500 sm:text-xl" />
+                    <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email" className="w-full rounded-full border-2 border-white/85 bg-transparent px-4 py-3 text-base font-semibold text-white outline-none placeholder:text-white/45 focus:border-wine-500 sm:text-xl" />
                   </>
                 ) : (
-                  <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email destinatar" className="w-full rounded-full border-2 border-white/85 bg-transparent px-4 py-3 text-base font-semibold text-white outline-none placeholder:text-white/45 focus:border-[#6724e8] sm:text-xl" />
+                  <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email destinatar" className="w-full rounded-full border-2 border-white/85 bg-transparent px-4 py-3 text-base font-semibold text-white outline-none placeholder:text-white/45 focus:border-wine-500 sm:text-xl" />
                 )}
-                <input type="number" min="1" value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} placeholder="Cantitate" className="w-full rounded-full border-2 border-white/85 bg-transparent px-4 py-3 text-base font-semibold text-white outline-none placeholder:text-white/45 focus:border-[#6724e8] sm:text-xl" />
+                <input type="number" min="1" value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} placeholder="Cantitate" className="w-full rounded-full border-2 border-white/85 bg-transparent px-4 py-3 text-base font-semibold text-white outline-none placeholder:text-white/45 focus:border-wine-500 sm:text-xl" />
               </div>
 
               <div className="flex justify-end pt-3">
-                <button type="button" onClick={() => void sendInvitations()} disabled={isSendingInvitation} className="w-full rounded-full bg-[#6724e8] px-6 py-3 text-base font-black text-white shadow-[0_18px_42px_rgba(103,36,232,0.35)] transition hover:bg-[#7c3aed] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-7 sm:text-xl">
+                <button type="button" onClick={() => void sendInvitations()} disabled={isSendingInvitation} className="w-full rounded-full bg-wine-600 px-6 py-3 text-base font-black text-white shadow-glow transition hover:bg-wine-500 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-7 sm:text-xl">
                   {isSendingInvitation ? "Se trimite..." : "Trimite invitatiile"}
                 </button>
               </div>
@@ -237,12 +237,12 @@ export default function OrganizerEventPromotion() {
                 <div className="mt-6 space-y-5">
                   <label className="block space-y-2">
                     <span className="text-xl font-black text-white sm:text-2xl">Subiect:</span>
-                    <input value={subject} onChange={(event) => setSubject(event.target.value)} placeholder="Subiect" className="w-full rounded-full border-2 border-white/85 bg-transparent px-4 py-3 text-base font-semibold text-white outline-none placeholder:text-white/45 focus:border-[#6724e8] sm:text-xl" />
+                    <input value={subject} onChange={(event) => setSubject(event.target.value)} placeholder="Subiect" className="w-full rounded-full border-2 border-white/85 bg-transparent px-4 py-3 text-base font-semibold text-white outline-none placeholder:text-white/45 focus:border-wine-500 sm:text-xl" />
                   </label>
 
                   <label className="block space-y-2">
                     <span className="text-xl font-black text-white sm:text-2xl">Descriere:</span>
-                    <textarea value={description} maxLength={78} onChange={(event) => setDescription(event.target.value)} placeholder="Scrie aici... ( maxim 78 caractere )" rows={5} className="w-full resize-none rounded-2xl border-2 border-white/85 bg-transparent px-4 py-3 text-base font-semibold text-white outline-none placeholder:text-white/45 focus:border-[#6724e8] sm:text-xl" />
+                    <textarea value={description} maxLength={78} onChange={(event) => setDescription(event.target.value)} placeholder="Scrie aici... ( maxim 78 caractere )" rows={5} className="w-full resize-none rounded-2xl border-2 border-white/85 bg-transparent px-4 py-3 text-base font-semibold text-white outline-none placeholder:text-white/45 focus:border-wine-500 sm:text-xl" />
                     <span className="text-sm font-semibold text-white/45">{description.length}/78 caractere</span>
                   </label>
                 </div>
@@ -267,7 +267,7 @@ export default function OrganizerEventPromotion() {
                 </div>
 
                 <div className="mt-8 flex justify-end sm:mt-16 xl:mt-36">
-                  <button type="button" onClick={() => void sendNotification()} disabled={isSendingNotification} className="w-full rounded-full bg-[#6724e8] px-6 py-3 text-base font-black text-white shadow-[0_18px_42px_rgba(103,36,232,0.35)] transition hover:bg-[#7c3aed] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-7 sm:text-xl">
+                  <button type="button" onClick={() => void sendNotification()} disabled={isSendingNotification} className="w-full rounded-full bg-wine-600 px-6 py-3 text-base font-black text-white shadow-glow transition hover:bg-wine-500 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-7 sm:text-xl">
                     {isSendingNotification ? "Se trimite..." : "Trimite notificare"}
                   </button>
                 </div>

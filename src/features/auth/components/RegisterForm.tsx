@@ -124,157 +124,157 @@ export default function RegisterForm() {
       {role === "client" ? (
         <>
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
+            <label className="field-label">
               Prenume
             </label>
             <input
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+              className="input"
               placeholder="Prenume"
             />
             {errors.firstName && (
-              <p className="mt-1 text-sm text-red-500">{errors.firstName}</p>
+              <p className="mt-1 text-sm text-rose-400">{errors.firstName}</p>
             )}
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
+            <label className="field-label">
               Nume
             </label>
             <input
               type="text"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+              className="input"
               placeholder="Nume"
             />
             {errors.lastName && (
-              <p className="mt-1 text-sm text-red-500">{errors.lastName}</p>
+              <p className="mt-1 text-sm text-rose-400">{errors.lastName}</p>
             )}
           </div>
         </>
       ) : (
         <>
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
+            <label className="field-label">
               Nume organizator / companie
             </label>
             <input
               type="text"
               value={organizerName}
               onChange={(e) => setOrganizerName(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+              className="input"
               placeholder="Ex: Art Events SRL"
             />
             {errors.organizerName && (
-              <p className="mt-1 text-sm text-red-500">{errors.organizerName}</p>
+              <p className="mt-1 text-sm text-rose-400">{errors.organizerName}</p>
             )}
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
+            <label className="field-label">
               Persoană de contact
             </label>
             <input
               type="text"
               value={contactName}
               onChange={(e) => setContactName(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+              className="input"
               placeholder="Nume complet"
             />
             {errors.contactName && (
-              <p className="mt-1 text-sm text-red-500">{errors.contactName}</p>
+              <p className="mt-1 text-sm text-rose-400">{errors.contactName}</p>
             )}
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
+            <label className="field-label">
               Telefon
             </label>
             <input
               type="text"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+              className="input"
               placeholder="07xxxxxxxx"
             />
             {errors.phone && (
-              <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
+              <p className="mt-1 text-sm text-rose-400">{errors.phone}</p>
             )}
           </div>
         </>
       )}
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-700">
+        <label className="field-label">
           Email
         </label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+          className="input"
           placeholder="exemplu@email.com"
         />
         {errors.email && (
-          <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+          <p className="mt-1 text-sm text-rose-400">{errors.email}</p>
         )}
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-700">
+        <label className="field-label">
           Parolă
         </label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+          className="input"
           placeholder="Minim 8 caractere"
         />
         {errors.password && (
-          <p className="mt-1 text-sm text-red-500">{errors.password}</p>
+          <p className="mt-1 text-sm text-rose-400">{errors.password}</p>
         )}
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-700">
+        <label className="field-label">
           Confirmă parola
         </label>
         <input
           type="password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+          className="input"
           placeholder="Confirmă parola"
         />
         {errors.confirmPassword && (
-          <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>
+          <p className="mt-1 text-sm text-rose-400">{errors.confirmPassword}</p>
         )}
       </div>
 
-      <label className="flex items-start gap-3 text-sm text-slate-600">
+      <label className="flex items-start gap-3 text-sm text-slate-400">
         <input
           type="checkbox"
           checked={acceptedTerms}
           onChange={(e) => setAcceptedTerms(e.target.checked)}
-          className="mt-1"
+          className="mt-1 h-4 w-4 accent-wine-600"
         />
         <span>Accept termenii și condițiile platformei.</span>
       </label>
 
       {errors.acceptedTerms && (
-        <p className="text-sm text-red-500">{errors.acceptedTerms}</p>
+        <p className="text-sm text-rose-400">{errors.acceptedTerms}</p>
       )}
 
       {authError && (
-        <p className="text-sm text-red-500">{authError}</p>
+        <p className="text-sm text-rose-400">{authError}</p>
       )}
 
       <div className="flex items-center justify-end text-sm">
-        <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-700">
+        <Link to="/login" className="font-medium text-wine-300 transition hover:text-wine-200">
           Ai deja cont? Conectează-te
         </Link>
       </div>
@@ -282,7 +282,7 @@ export default function RegisterForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="w-full rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+        className="btn-primary w-full py-3"
       >
         {status === "loading" ? "Se creează contul..." : "Creează cont"}
       </button>

@@ -13,8 +13,7 @@ const createTicketType = (): EventTicketType => ({
   price: 0,
 });
 
-const buttonClass =
-  "rounded-xl bg-[linear-gradient(135deg,#7c3aed,#111827)] px-5 py-3 font-medium text-white shadow-lg shadow-violet-200 transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60";
+const buttonClass = "btn-primary px-6 py-3";
 
 export default function CreateEvent() {
   const dispatch = useAppDispatch();
@@ -148,14 +147,15 @@ export default function CreateEvent() {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">Create Event</h1>
-        <p className="mt-2 text-slate-600">Creeaza un eveniment nou cu afis si tipuri de bilete configurabile.</p>
+      <div className="animate-fade-up">
+        <p className="eyebrow">Eveniment nou</p>
+        <h1 className="mt-2 font-display text-3xl font-extrabold text-white">Create Event</h1>
+        <p className="mt-2 text-slate-400">Creeaza un eveniment nou cu afis si tipuri de bilete configurabile.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl bg-white p-6 shadow-sm">
+      <form onSubmit={handleSubmit} className="card animate-fade-up space-y-5 p-6 sm:p-8" style={{ animationDelay: "0.06s" }}>
         {submitError ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-200">
             {submitError}
           </div>
         ) : null}
@@ -164,13 +164,13 @@ export default function CreateEvent() {
           onDrop={handlePosterDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={() => fileInputRef.current?.click()}
-          className="cursor-pointer rounded-2xl border-2 border-dashed border-violet-200 bg-violet-50/50 p-6 transition hover:border-violet-300"
+          className="cursor-pointer rounded-2xl border-2 border-dashed border-wine-500/30 bg-wine-600/[0.06] p-6 transition hover:border-wine-500/60 hover:bg-wine-600/10"
         >
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePosterChange} className="hidden" />
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-600">Event poster</p>
-          <p className="mt-2 text-slate-600">Drag and drop pentru afis sau apasa ca sa incarci o imagine.</p>
+          <p className="eyebrow">Event poster</p>
+          <p className="mt-2 text-slate-400">Drag and drop pentru afis sau apasa ca sa incarci o imagine.</p>
           {imageUrl ? (
-            <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            <div className="mt-5 overflow-hidden rounded-2xl border border-white/10">
               <img src={imageUrl} alt="Poster preview" className="h-72 w-full object-cover" />
             </div>
           ) : null}
@@ -179,75 +179,75 @@ export default function CreateEvent() {
 
         <div className="grid gap-5 md:grid-cols-2">
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Titlu eveniment</label>
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
-            {errors.title && <p className="mt-1 text-sm text-red-500">{errors.title}</p>}
+            <label className="field-label">Titlu eveniment</label>
+            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="input" />
+            {errors.title && <p className="mt-1 text-sm text-rose-400">{errors.title}</p>}
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Categorie</label>
-            <input type="text" value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
-            {errors.category && <p className="mt-1 text-sm text-red-500">{errors.category}</p>}
+            <label className="field-label">Categorie</label>
+            <input type="text" value={category} onChange={(e) => setCategory(e.target.value)} className="input" />
+            {errors.category && <p className="mt-1 text-sm text-rose-400">{errors.category}</p>}
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Oras</label>
-            <select value={city} onChange={(e) => setCity(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400">
-              <option value="">Selecteaza un oras</option>
+            <label className="field-label">Oras</label>
+            <select value={city} onChange={(e) => setCity(e.target.value)} className="input">
+              <option value="" className="bg-ink-800">Selecteaza un oras</option>
               {romanianCities.map((cityOption) => (
-                <option key={cityOption} value={cityOption}>{cityOption}</option>
+                <option key={cityOption} value={cityOption} className="bg-ink-800">{cityOption}</option>
               ))}
             </select>
-            {errors.city && <p className="mt-1 text-sm text-red-500">{errors.city}</p>}
+            {errors.city && <p className="mt-1 text-sm text-rose-400">{errors.city}</p>}
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Data</label>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
-            {errors.date && <p className="mt-1 text-sm text-red-500">{errors.date}</p>}
+            <label className="field-label">Data</label>
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input" />
+            {errors.date && <p className="mt-1 text-sm text-rose-400">{errors.date}</p>}
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Venue</label>
-            <input type="text" value={venueName} onChange={(e) => setVenueName(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
-            {errors.venueName && <p className="mt-1 text-sm text-red-500">{errors.venueName}</p>}
+            <label className="field-label">Venue</label>
+            <input type="text" value={venueName} onChange={(e) => setVenueName(e.target.value)} className="input" />
+            {errors.venueName && <p className="mt-1 text-sm text-rose-400">{errors.venueName}</p>}
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Adresa venue</label>
-            <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
-            {errors.venueAddress && <p className="mt-1 text-sm text-red-500">{errors.venueAddress}</p>}
+            <label className="field-label">Adresa venue</label>
+            <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} className="input" />
+            {errors.venueAddress && <p className="mt-1 text-sm text-rose-400">{errors.venueAddress}</p>}
           </div>
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">Descriere</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
-          {errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}
+          <label className="field-label">Descriere</label>
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} className="input" />
+          {errors.description && <p className="mt-1 text-sm text-rose-400">{errors.description}</p>}
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">Artisti / lineup</label>
-          <input type="text" value={performersInput} onChange={(e) => setPerformersInput(e.target.value)} placeholder="Ex: Karla Noir, Nico V, Pulse District" className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
+          <label className="field-label">Artisti / lineup</label>
+          <input type="text" value={performersInput} onChange={(e) => setPerformersInput(e.target.value)} placeholder="Ex: Karla Noir, Nico V, Pulse District" className="input" />
           <p className="mt-2 text-sm text-slate-500">Optional. Separa artistii prin virgula.</p>
         </div>
 
-        <div className="space-y-4 rounded-2xl border border-slate-200 p-5">
-          <div className="flex items-center justify-between">
+        <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-5">
+          <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-600">Ticket types</p>
-              <p className="mt-1 text-sm text-slate-500">Adauga tipuri de bilete si pretul fiecaruia.</p>
+              <p className="eyebrow">Ticket types</p>
+              <p className="mt-1 text-sm text-slate-400">Adauga tipuri de bilete si pretul fiecaruia.</p>
             </div>
-            <button type="button" onClick={addTicketTypeField} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <button type="button" onClick={addTicketTypeField} className="btn-outline">
               Add ticket type
             </button>
           </div>
 
           {ticketTypes.map((ticketType, index) => (
             <div key={ticketType.id} className="grid gap-3 md:grid-cols-[1fr_180px_auto]">
-              <input type="text" value={ticketType.name} onChange={(e) => updateTicketType(ticketType.id, "name", e.target.value)} placeholder={`Tip bilet ${index + 1}`} className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
-              <input type="number" min="1" value={ticketType.price || ""} onChange={(e) => updateTicketType(ticketType.id, "price", e.target.value)} placeholder="Pret" className="rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
-              <button type="button" onClick={() => removeTicketTypeField(ticketType.id)} className="rounded-xl border border-slate-300 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
+              <input type="text" value={ticketType.name} onChange={(e) => updateTicketType(ticketType.id, "name", e.target.value)} placeholder={`Tip bilet ${index + 1}`} className="input" />
+              <input type="number" min="1" value={ticketType.price || ""} onChange={(e) => updateTicketType(ticketType.id, "price", e.target.value)} placeholder="Pret" className="input" />
+              <button type="button" onClick={() => removeTicketTypeField(ticketType.id)} className="btn-ghost border border-white/10">
                 Remove
               </button>
             </div>
           ))}
-          {errors.ticketTypes ? <p className="text-sm text-red-500">{errors.ticketTypes}</p> : null}
+          {errors.ticketTypes ? <p className="text-sm text-rose-400">{errors.ticketTypes}</p> : null}
         </div>
 
         <button type="submit" disabled={isSubmitting} className={buttonClass}>

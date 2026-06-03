@@ -215,7 +215,7 @@ export default function OrganizerEventTickets() {
         <button
           type="button"
           onClick={() => setEditingTicket(emptyTicket(event.date))}
-          className="rounded-2xl bg-[#6724e8] px-6 py-3 text-lg font-black text-white shadow-[0_18px_42px_rgba(103,36,232,0.35)] transition hover:bg-[#7c3aed]"
+          className="rounded-2xl bg-wine-600 px-6 py-3 text-lg font-black text-white shadow-glow transition hover:bg-wine-500"
         >
           + Adauga tip de bilet
         </button>
@@ -229,7 +229,7 @@ export default function OrganizerEventTickets() {
 
       <section className="grid gap-7 xl:grid-cols-2">
         {tickets.map((ticket) => (
-          <article key={ticket.id} className="rounded-[1.5rem] border-4 border-[#6724e8] bg-black p-5 shadow-[0_24px_70px_rgba(0,0,0,0.35)]">
+          <article key={ticket.id} className="rounded-3xl border border-wine-600/60 bg-ink-900 p-5 shadow-card transition hover:border-wine-500">{/* ticket */}
             <div className="flex items-start justify-between gap-5">
               <div>
                 <h4 className="text-2xl font-black leading-tight text-white">{ticket.name || "Tip bilet fara nume"}</h4>
@@ -275,7 +275,7 @@ export default function OrganizerEventTickets() {
               <button
                 type="button"
                 onClick={() => setEditingTicket(ticket)}
-                className="rounded-full bg-[#6724e8] px-5 py-2.5 text-lg font-black text-white transition hover:bg-[#7c3aed]"
+                className="rounded-full bg-wine-600 px-5 py-2.5 text-lg font-black text-white transition hover:bg-wine-500"
               >
                 Editeaza
               </button>
@@ -292,45 +292,45 @@ export default function OrganizerEventTickets() {
       </section>
 
       {editingTicket ? (
-        <section className="rounded-[1.75rem] border border-white/10 bg-white p-6 text-slate-900 shadow-[0_24px_70px_rgba(0,0,0,0.28)]">
+        <section className="animate-scale-in rounded-4xl border border-white/10 bg-ink-850 p-6 text-slate-100 shadow-elevated">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-bold uppercase tracking-[0.25em] text-violet-500">Editor bilet</p>
-              <h3 className="mt-1 text-2xl font-black text-slate-950">{tickets.some((ticket) => ticket.id === editingTicket.id) ? "Editeaza bilet" : "Adauga tip de bilet"}</h3>
+              <p className="eyebrow">Editor bilet</p>
+              <h3 className="mt-1 font-display text-2xl font-extrabold text-white">{tickets.some((ticket) => ticket.id === editingTicket.id) ? "Editeaza bilet" : "Adauga tip de bilet"}</h3>
             </div>
-            <button type="button" onClick={() => setEditingTicket(null)} className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+            <button type="button" onClick={() => setEditingTicket(null)} className="btn-outline">
               Inchide
             </button>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <label className="space-y-2">
-              <span className="text-sm font-semibold text-slate-700">Nume bilet</span>
-              <input value={editingTicket.name} onChange={(e) => setEditingTicket({ ...editingTicket, name: e.target.value })} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
+              <span className="text-sm font-semibold text-slate-300">Nume bilet</span>
+              <input value={editingTicket.name} onChange={(e) => setEditingTicket({ ...editingTicket, name: e.target.value })} className="input" />
             </label>
             <label className="space-y-2">
-              <span className="text-sm font-semibold text-slate-700">Pret</span>
-              <input type="number" min="1" value={editingTicket.price || ""} onChange={(e) => setEditingTicket({ ...editingTicket, price: Number(e.target.value) })} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
+              <span className="text-sm font-semibold text-slate-300">Pret</span>
+              <input type="number" min="1" value={editingTicket.price || ""} onChange={(e) => setEditingTicket({ ...editingTicket, price: Number(e.target.value) })} className="input" />
             </label>
             <label className="space-y-2">
-              <span className="text-sm font-semibold text-slate-700">Cantitate ramasa</span>
-              <input type="number" min="0" value={editingTicket.remaining} onChange={(e) => setEditingTicket({ ...editingTicket, remaining: Number(e.target.value), soldOut: Number(e.target.value) <= 0 })} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
+              <span className="text-sm font-semibold text-slate-300">Cantitate ramasa</span>
+              <input type="number" min="0" value={editingTicket.remaining} onChange={(e) => setEditingTicket({ ...editingTicket, remaining: Number(e.target.value), soldOut: Number(e.target.value) <= 0 })} className="input" />
             </label>
-            <label className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3">
-              <input type="checkbox" checked={editingTicket.soldOut} onChange={(e) => setEditingTicket({ ...editingTicket, soldOut: e.target.checked, remaining: e.target.checked ? 0 : editingTicket.remaining || 100 })} />
-              <span className="text-sm font-semibold text-slate-700">Marcheaza sold out</span>
-            </label>
-            <label className="space-y-2">
-              <span className="text-sm font-semibold text-slate-700">De la</span>
-              <input type="datetime-local" value={editingTicket.startsAt} onChange={(e) => setEditingTicket({ ...editingTicket, startsAt: e.target.value })} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
+            <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+              <input type="checkbox" checked={editingTicket.soldOut} onChange={(e) => setEditingTicket({ ...editingTicket, soldOut: e.target.checked, remaining: e.target.checked ? 0 : editingTicket.remaining || 100 })} className="h-4 w-4 accent-wine-600" />
+              <span className="text-sm font-semibold text-slate-300">Marcheaza sold out</span>
             </label>
             <label className="space-y-2">
-              <span className="text-sm font-semibold text-slate-700">Pana la</span>
-              <input type="datetime-local" value={editingTicket.endsAt} onChange={(e) => setEditingTicket({ ...editingTicket, endsAt: e.target.value })} className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-violet-400" />
+              <span className="text-sm font-semibold text-slate-300">De la</span>
+              <input type="datetime-local" value={editingTicket.startsAt} onChange={(e) => setEditingTicket({ ...editingTicket, startsAt: e.target.value })} className="input" />
+            </label>
+            <label className="space-y-2">
+              <span className="text-sm font-semibold text-slate-300">Pana la</span>
+              <input type="datetime-local" value={editingTicket.endsAt} onChange={(e) => setEditingTicket({ ...editingTicket, endsAt: e.target.value })} className="input" />
             </label>
           </div>
 
-          <button type="button" disabled={saving} onClick={() => void saveTicket()} className="mt-6 rounded-full bg-[#6724e8] px-6 py-3 font-black text-white transition hover:bg-[#7c3aed] disabled:opacity-60">
+          <button type="button" disabled={saving} onClick={() => void saveTicket()} className="btn-primary mt-6 px-6 py-3">
             {saving ? "Se salveaza..." : "Salveaza bilet"}
           </button>
         </section>
@@ -346,7 +346,7 @@ export default function OrganizerEventTickets() {
               discounts.map((discount) => (
                 <div key={discount.id} className="flex max-w-xl items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white">
                   <span className="font-black">{discount.code}</span>
-                  <span className="font-semibold text-violet-300">-{discount.percent}%</span>
+                  <span className="font-semibold text-wine-300">-{discount.percent}%</span>
                 </div>
               ))
             )}
@@ -355,10 +355,10 @@ export default function OrganizerEventTickets() {
 
         <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
           <div className="grid gap-3 sm:grid-cols-[1fr_120px]">
-            <input value={discountCode} onChange={(e) => setDiscountCode(e.target.value)} placeholder="Cod" className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 font-semibold text-white outline-none placeholder:text-white/35 focus:border-violet-400" />
-            <input type="number" min="1" max="100" value={discountPercent} onChange={(e) => setDiscountPercent(Number(e.target.value))} className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 font-semibold text-white outline-none focus:border-violet-400" />
+            <input value={discountCode} onChange={(e) => setDiscountCode(e.target.value)} placeholder="Cod" className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 font-semibold text-white outline-none placeholder:text-white/35 focus:border-wine-400" />
+            <input type="number" min="1" max="100" value={discountPercent} onChange={(e) => setDiscountPercent(Number(e.target.value))} className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 font-semibold text-white outline-none focus:border-wine-400" />
           </div>
-          <button type="button" onClick={addDiscount} className="mt-4 w-full rounded-2xl bg-[#6724e8] px-6 py-3 text-lg font-black text-white shadow-[0_18px_42px_rgba(103,36,232,0.35)] transition hover:bg-[#7c3aed]">
+          <button type="button" onClick={addDiscount} className="mt-4 w-full rounded-2xl bg-wine-600 px-6 py-3 text-lg font-black text-white shadow-glow transition hover:bg-wine-500">
             + Adauga cod de reducere
           </button>
         </div>

@@ -77,14 +77,14 @@ export default function OrganizerEventLayout() {
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `group flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border transition md:h-12 md:w-12 ${
       isActive
-        ? "border-white/35 bg-white text-violet-700 shadow-lg"
-        : "border-white/10 bg-white/6 text-white/80 hover:border-white/20 hover:bg-white/10 hover:text-white"
+        ? "border-white/35 bg-white text-wine-700 shadow-lg"
+        : "border-white/10 bg-white/[0.06] text-white/80 hover:border-white/20 hover:bg-white/10 hover:text-white"
     }`;
 
   return (
-    <div className="min-h-screen overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_top_left,rgba(124,58,237,0.28),transparent_24%),linear-gradient(135deg,#050816,#111827)] text-white shadow-[0_30px_90px_rgba(15,23,42,0.32)] sm:rounded-[2rem]">
+    <div className="min-h-screen overflow-hidden rounded-4xl border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(207,47,99,0.3),transparent_26%),linear-gradient(135deg,#0a0610,#1b1422)] text-white shadow-elevated sm:rounded-5xl">
       <div className="flex min-h-screen flex-col md:flex-row">
-        <aside className="flex shrink-0 flex-row items-center justify-between gap-4 bg-[linear-gradient(90deg,#7c3aed,#1f1147)] px-4 py-3 shadow-[0_18px_45px_rgba(76,29,149,0.22)] md:w-[92px] md:flex-col md:px-0 md:py-6 md:shadow-[24px_0_70px_rgba(76,29,149,0.3)]">
+        <aside className="flex shrink-0 flex-row items-center justify-between gap-4 bg-[linear-gradient(90deg,#b71e4c,#4e1027)] px-4 py-3 shadow-[0_18px_45px_rgba(78,16,39,0.4)] md:w-[92px] md:flex-col md:px-0 md:py-6 md:shadow-[24px_0_70px_rgba(78,16,39,0.45)]">
           <div className="flex items-center gap-3 md:flex-col md:gap-5">
             <button
               type="button"
@@ -127,7 +127,7 @@ export default function OrganizerEventLayout() {
                 {event?.title ?? "Se incarca evenimentul..."}
               </h1>
               <p className="mt-3 text-white/65">
-                {event ? `${event.city} � ${event.venueName} � ${new Date(event.date).toLocaleDateString("ro-RO")}` : "Administrare completa pentru evenimentul selectat."}
+                {event ? `${event.city} · ${event.venueName} · ${new Date(event.date).toLocaleDateString("ro-RO")}` : "Administrare completa pentru evenimentul selectat."}
               </p>
             </div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/6 px-4 py-2 text-sm font-semibold text-white/80">

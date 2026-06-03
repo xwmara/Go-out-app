@@ -61,7 +61,7 @@ function SalesChart({ points, range }: { points: OrganizerEventSalesPoint[]; ran
   return (
     <div className="relative py-3">
       <div className="mb-2 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-center">
-        <div className="grid grid-cols-2 gap-10 rounded-[40%] bg-[#6724e8] px-9 py-7 shadow-[0_24px_70px_rgba(103,36,232,0.28)]">
+        <div className="grid grid-cols-2 gap-10 rounded-[40%] bg-wine-600 px-9 py-7 shadow-[0_24px_70px_rgba(183,30,76,0.32)]">
           <div>
             <p className="text-xl font-black text-white/55">Bilete</p>
             <p className="mt-1 border-b-2 border-cyan-400 pb-1 text-2xl font-black text-white">{totalTickets}</p>
@@ -228,7 +228,7 @@ export default function OrganizerEventOverview() {
             <div className="flex flex-wrap items-center gap-6 text-white/90">
               <div>
                 <p className="text-sm text-white/50">Bilete</p>
-                <p className="text-2xl font-black text-violet-300">{overview.ticketsSold}</p>
+                <p className="text-2xl font-black text-wine-300">{overview.ticketsSold}</p>
               </div>
               <div>
                 <p className="text-sm text-white/50">Incasari</p>
@@ -245,7 +245,7 @@ export default function OrganizerEventOverview() {
                 onClick={() => setRange(option.key)}
                 className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${
                   range === option.key
-                    ? "bg-white text-violet-700"
+                    ? "bg-white text-wine-700"
                     : "bg-white/8 text-white/75 hover:bg-white/12 hover:text-white"
                 }`}
               >
@@ -282,7 +282,7 @@ export default function OrganizerEventOverview() {
               <h3 className="text-2xl font-black text-white">Comenzi recente</h3>
               <p className="mt-1 text-white/55">Vezi clientii care au cumparat bilete la acest eveniment.</p>
             </div>
-            <Link to="/organizer/marketing" className="rounded-full bg-[linear-gradient(135deg,#7c3aed,#111827)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-400/20 transition hover:opacity-95">
+            <Link to="/organizer/marketing" className="btn-primary">
               Vezi comenzi
             </Link>
           </div>
@@ -318,7 +318,7 @@ export default function OrganizerEventOverview() {
               <h3 className="text-2xl font-black text-white">Bilete</h3>
               <p className="mt-1 text-white/55">Status rapid pentru tipurile de bilete configurate.</p>
             </div>
-            <Link to="../tickets" className="rounded-full bg-[linear-gradient(135deg,#7c3aed,#111827)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-400/20 transition hover:opacity-95">
+            <Link to="../tickets" className="btn-primary">
               Vezi bilete
             </Link>
           </div>
@@ -338,7 +338,7 @@ export default function OrganizerEventOverview() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm uppercase tracking-[0.25em] text-white/35">Vandute</p>
-                      <p className="mt-1 text-2xl font-black text-violet-300">{ticketType.sold}</p>
+                      <p className="mt-1 text-2xl font-black text-wine-300">{ticketType.sold}</p>
                     </div>
                   </div>
                 </div>
