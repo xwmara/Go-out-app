@@ -139,6 +139,9 @@ export default function MyTickets() {
                     <div className="flex items-center justify-between gap-4"><span>Cantitate</span><strong className="text-white">{selectedTicket.quantity}</strong></div>
                     <div className="flex items-center justify-between gap-4"><span>Data eveniment</span><strong className="text-white">{formatDate(selectedTicket.eventDate)}</strong></div>
                     <div className="flex items-center justify-between gap-4"><span>Total</span><strong className="text-white">{selectedTicket.totalPrice} lei</strong></div>
+                    {selectedTicket.discountCode ? (
+                      <div className="flex items-center justify-between gap-4"><span>Cod reducere</span><strong className="text-emerald-300">{selectedTicket.discountCode}</strong></div>
+                    ) : null}
                     <div className="flex items-center justify-between gap-4"><span>Factura</span><strong className="text-white">{selectedTicket.invoiceNumber}</strong></div>
                   </div>
                 </div>

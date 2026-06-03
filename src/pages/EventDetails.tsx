@@ -4,7 +4,9 @@ import { useAppDispatch, useAppSelector } from "../app/store/hook";
 import { selectCurrentUser } from "../features/auth/authSelectors";
 import { selectAllEvents } from "../features/events/eventSelectors";
 import { fetchEventById } from "../features/events/eventsSlice";
+import { isTicketTypeSoldOut } from "../features/events/eventTypes";
 import { purchaseTicket } from "../features/tickets/ticketsSlice";
+import { discountsService, type ValidateDiscountResult } from "../features/discounts/discountsService";
 
 const formatDate = (value: string) =>
   new Date(value).toLocaleDateString("ro-RO", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
@@ -24,10 +26,40 @@ export default function EventDetails() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  useEffect(() => { setSelectedTicketTypeId(ticketOptions[0]?.id ?? ""); }, [event?.id, ticketOptions]);
+  // Discount code state
+  const [discountInput, setDiscountInput] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState<ValidateDiscountResult | null>(null);
+  const [discountError, setDiscountError] = useState("");
+  const [applyingDiscount, setApplyingDiscount] = useState(false);
+
+  useEffect(() => {
+    const firstAvailable = ticketOptions.find((option) => !isTicketTypeSoldOut(option)) ?? ticketOptions[0];
+    setSelectedTicketTypeId(firstAvailable?.id ?? "");
+  }, [event?.id, ticketOptions]);
 
   const selectedTicketType = ticketOptions.find((ticketType) => ticketType.id === selectedTicketTypeId) ?? ticketOptions[0];
-  const totalPrice = useMemo(() => quantity * (selectedTicketType?.price ?? event?.ticketPrice ?? 49), [event?.ticketPrice, quantity, selectedTicketType?.price]);
+  const unitPrice = selectedTicketType?.price ?? event?.ticketPrice ?? 49;
+  const subtotal = useMemo(() => quantity * unitPrice, [quantity, unitPrice]);
+  const selectedSoldOut = selectedTicketType ? isTicketTypeSoldOut(selectedTicketType) : false;
+  const allSoldOut = ticketOptions.every((option) => isTicketTypeSoldOut(option));
+
+  const discountAmount = appliedDiscount?.valid ? appliedDiscount.discountAmount : 0;
+  const finalTotal = Math.max(0, subtotal - discountAmount);
+
+  const resetDiscount = () => {
+    setAppliedDiscount(null);
+    setDiscountError("");
+  };
+
+  const handleTicketTypeChange = (value: string) => {
+    setSelectedTicketTypeId(value);
+    resetDiscount();
+  };
+
+  const handleQuantityChange = (value: number) => {
+    setQuantity(value);
+    resetDiscount();
+  };
 
   if (!event && eventsStatus === "loading") {
     return <div className="card animate-pulse p-8 text-slate-400">Se incarca evenimentul...</div>;
@@ -43,11 +75,54 @@ export default function EventDetails() {
     );
   }
 
+  const handleApplyDiscount = async () => {
+    const code = discountInput.trim();
+    if (!code) {
+      setDiscountError("Introdu un cod de reducere.");
+      setAppliedDiscount(null);
+      return;
+    }
+
+    setApplyingDiscount(true);
+    setDiscountError("");
+    try {
+      const result = await discountsService.validate(event.id, code, subtotal);
+      if (result.valid) {
+        setAppliedDiscount(result);
+        setDiscountError("");
+      } else {
+        setAppliedDiscount(null);
+        setDiscountError(result.message || "Codul de reducere nu este valid.");
+      }
+    } catch {
+      setAppliedDiscount(null);
+      setDiscountError("Nu am putut valida codul de reducere.");
+    } finally {
+      setApplyingDiscount(false);
+    }
+  };
+
   const handleBuyTickets = async () => {
     if (!currentUser || currentUser.role !== "client") return;
+    if (selectedSoldOut) {
+      setErrorMessage("Acest tip de bilet este SOLD OUT.");
+      return;
+    }
     setSuccessMessage(""); setErrorMessage("");
     try {
-      await dispatch(purchaseTicket({ eventId: event.id, userId: currentUser.id, eventTitle: event.title, eventDate: event.date, eventCity: event.city, venueName: event.venueName, ticketTypeName: selectedTicketType?.name ?? "General Access", quantity, unitPrice: selectedTicketType?.price ?? event.ticketPrice ?? 49 })).unwrap();
+      await dispatch(purchaseTicket({
+        eventId: event.id,
+        userId: currentUser.id,
+        eventTitle: event.title,
+        eventDate: event.date,
+        eventCity: event.city,
+        venueName: event.venueName,
+        ticketTypeId: selectedTicketType?.id,
+        ticketTypeName: selectedTicketType?.name ?? "General Access",
+        quantity,
+        unitPrice,
+        discountCode: appliedDiscount?.valid ? appliedDiscount.code ?? undefined : undefined,
+      })).unwrap();
       setSuccessMessage("Biletele au fost adaugate in contul tau.");
     } catch (error) {
       setErrorMessage(typeof error === "string" ? error : "Nu am putut finaliza comanda.");
@@ -90,37 +165,109 @@ export default function EventDetails() {
                 </div>
               </div>
             </div>
+
+            {/* Ticket types overview with availability / sold-out badges */}
+            {event.ticketTypes?.length ? (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <p className="eyebrow">Tipuri de bilete</p>
+                <div className="mt-4 space-y-3">
+                  {event.ticketTypes.map((ticketType) => {
+                    const soldOut = isTicketTypeSoldOut(ticketType);
+                    return (
+                      <div key={ticketType.id} className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-ink-900/40 px-4 py-3">
+                        <div>
+                          <p className="font-semibold text-white">{ticketType.name}</p>
+                          {ticketType.description ? <p className="mt-0.5 text-sm text-slate-400">{ticketType.description}</p> : null}
+                          {ticketType.availableQuantity !== null && ticketType.availableQuantity !== undefined && !soldOut ? (
+                            <p className="mt-0.5 text-xs text-slate-500">{ticketType.availableQuantity} bilete disponibile</p>
+                          ) : null}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-white">{ticketType.price} lei</p>
+                          {soldOut ? (
+                            <span className="mt-1 inline-flex rounded-full bg-rose-500/15 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-rose-300">Sold out</span>
+                          ) : null}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <aside className="rounded-4xl border border-white/10 bg-ink-900/80 p-6 shadow-soft">
             <p className="eyebrow">Tickets</p>
-            <p className="mt-3 font-display text-4xl font-extrabold text-white">{selectedTicketType?.price ?? event.ticketPrice ?? 49} lei</p>
+            <p className="mt-3 font-display text-4xl font-extrabold text-white">{unitPrice} lei</p>
             <p className="mt-2 text-slate-400">Alege tipul de bilet dorit, apoi cantitatea.</p>
+
             <div className="mt-6 space-y-2">
               <label className="block text-sm font-semibold text-slate-300">Tip bilet</label>
-              <select value={selectedTicketTypeId} onChange={(e) => setSelectedTicketTypeId(e.target.value)} className="input">
-                {ticketOptions.map((ticketType) => (
-                  <option key={ticketType.id} value={ticketType.id} className="bg-ink-800 text-white">{ticketType.name} - {ticketType.price} lei</option>
-                ))}
+              <select value={selectedTicketTypeId} onChange={(e) => handleTicketTypeChange(e.target.value)} className="input">
+                {ticketOptions.map((ticketType) => {
+                  const soldOut = isTicketTypeSoldOut(ticketType);
+                  return (
+                    <option key={ticketType.id} value={ticketType.id} disabled={soldOut} className="bg-ink-800 text-white">
+                      {ticketType.name} - {ticketType.price} lei{soldOut ? " (SOLD OUT)" : ""}
+                    </option>
+                  );
+                })}
               </select>
             </div>
+
             <div className="mt-4 space-y-2">
               <label className="block text-sm font-semibold text-slate-300">Cantitate</label>
-              <select value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} className="input">
+              <select value={quantity} onChange={(e) => handleQuantityChange(Number(e.target.value))} className="input" disabled={selectedSoldOut}>
                 {[1,2,3,4,5].map((value) => (
                   <option key={value} value={value} className="bg-ink-800 text-white">{value} bilet{value > 1 ? "e" : ""}</option>
                 ))}
               </select>
             </div>
-            <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="flex items-center justify-between text-sm text-slate-400"><span>{selectedTicketType?.name ?? "General Access"}</span><span>{selectedTicketType?.price ?? event.ticketPrice ?? 49} lei</span></div>
-              <div className="mt-3 flex items-center justify-between text-sm font-semibold text-white"><span>Total</span><span className="text-gradient text-base">{totalPrice} lei</span></div>
+
+            {/* Discount code */}
+            <div className="mt-4 space-y-2">
+              <label className="block text-sm font-semibold text-slate-300">Cod de reducere</label>
+              <div className="flex gap-2">
+                <input
+                  value={discountInput}
+                  onChange={(e) => setDiscountInput(e.target.value)}
+                  placeholder="Ex: EARLYBIRD"
+                  className="input flex-1"
+                  disabled={selectedSoldOut}
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleApplyDiscount()}
+                  disabled={applyingDiscount || selectedSoldOut}
+                  className="btn-outline shrink-0"
+                >
+                  {applyingDiscount ? "..." : "Aplica"}
+                </button>
+              </div>
+              {appliedDiscount?.valid ? (
+                <p className="text-sm font-medium text-emerald-300">
+                  Cod {appliedDiscount.code} aplicat — reducere {discountAmount} lei.
+                </p>
+              ) : null}
+              {discountError ? <p className="text-sm text-rose-400">{discountError}</p> : null}
             </div>
+
+            <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5">
+              <div className="flex items-center justify-between text-sm text-slate-400"><span>{selectedTicketType?.name ?? "General Access"}</span><span>{subtotal} lei</span></div>
+              {discountAmount > 0 ? (
+                <div className="mt-2 flex items-center justify-between text-sm text-emerald-300"><span>Reducere</span><span>- {discountAmount} lei</span></div>
+              ) : null}
+              <div className="mt-3 flex items-center justify-between text-sm font-semibold text-white"><span>Total</span><span className="text-gradient text-base">{finalTotal} lei</span></div>
+            </div>
+
             {currentUser?.role === "client" ? (
-              <button onClick={handleBuyTickets} className="btn-primary mt-6 w-full py-3">Cumpara bilete</button>
+              <button onClick={handleBuyTickets} disabled={selectedSoldOut} className="btn-primary mt-6 w-full py-3">
+                {selectedSoldOut ? "SOLD OUT" : "Cumpara bilete"}
+              </button>
             ) : (
               <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-400">Pentru a cumpara bilete, autentifica-te ca utilizator de tip client.</div>
             )}
+            {allSoldOut ? <p className="mt-4 text-sm font-medium text-rose-300">Toate tipurile de bilete sunt SOLD OUT.</p> : null}
             {successMessage ? <p className="mt-4 text-sm font-medium text-emerald-300">{successMessage}</p> : null}
             {errorMessage ? <p className="mt-4 text-sm font-medium text-rose-400">{errorMessage}</p> : null}
           </aside>

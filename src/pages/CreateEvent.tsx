@@ -11,6 +11,9 @@ const createTicketType = (): EventTicketType => ({
   id: crypto.randomUUID(),
   name: "",
   price: 0,
+  availableQuantity: 100,
+  description: "",
+  soldOut: false,
 });
 
 const buttonClass = "btn-primary px-6 py-3";
@@ -54,11 +57,19 @@ export default function CreateEvent() {
     setPosterFile(e.dataTransfer.files?.[0]);
   };
 
-  const updateTicketType = (ticketTypeId: string, field: "name" | "price", value: string) => {
+  const updateTicketType = (
+    ticketTypeId: string,
+    field: "name" | "price" | "availableQuantity" | "description",
+    value: string,
+  ) => {
     setTicketTypes((current) =>
       current.map((ticketType) =>
         ticketType.id === ticketTypeId
-          ? { ...ticketType, [field]: field === "price" ? Number(value) : value }
+          ? {
+              ...ticketType,
+              [field]:
+                field === "price" || field === "availableQuantity" ? Number(value) : value,
+            }
           : ticketType,
       ),
     );
@@ -239,12 +250,16 @@ export default function CreateEvent() {
           </div>
 
           {ticketTypes.map((ticketType, index) => (
-            <div key={ticketType.id} className="grid gap-3 md:grid-cols-[1fr_180px_auto]">
-              <input type="text" value={ticketType.name} onChange={(e) => updateTicketType(ticketType.id, "name", e.target.value)} placeholder={`Tip bilet ${index + 1}`} className="input" />
-              <input type="number" min="1" value={ticketType.price || ""} onChange={(e) => updateTicketType(ticketType.id, "price", e.target.value)} placeholder="Pret" className="input" />
-              <button type="button" onClick={() => removeTicketTypeField(ticketType.id)} className="btn-ghost border border-white/10">
-                Remove
-              </button>
+            <div key={ticketType.id} className="grid gap-3 rounded-2xl border border-white/10 bg-ink-900/40 p-4">
+              <div className="grid gap-3 md:grid-cols-[1fr_140px_140px_auto]">
+                <input type="text" value={ticketType.name} onChange={(e) => updateTicketType(ticketType.id, "name", e.target.value)} placeholder={`Tip bilet ${index + 1} (ex: VIP)`} className="input" />
+                <input type="number" min="1" value={ticketType.price || ""} onChange={(e) => updateTicketType(ticketType.id, "price", e.target.value)} placeholder="Pret" className="input" />
+                <input type="number" min="0" value={ticketType.availableQuantity ?? ""} onChange={(e) => updateTicketType(ticketType.id, "availableQuantity", e.target.value)} placeholder="Cantitate" className="input" />
+                <button type="button" onClick={() => removeTicketTypeField(ticketType.id)} className="btn-ghost border border-white/10">
+                  Remove
+                </button>
+              </div>
+              <input type="text" value={ticketType.description ?? ""} onChange={(e) => updateTicketType(ticketType.id, "description", e.target.value)} placeholder="Descriere (optional)" className="input" />
             </div>
           ))}
           {errors.ticketTypes ? <p className="text-sm text-rose-400">{errors.ticketTypes}</p> : null}

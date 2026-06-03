@@ -4,18 +4,13 @@ import { useAppDispatch, useAppSelector } from "../app/store/hook";
 import { selectAllEvents } from "../features/events/eventSelectors";
 import { fetchEventById, updateEvent } from "../features/events/eventsSlice";
 import type { EventTicketType } from "../features/events/eventTypes";
+import { discountsService, type DiscountItem } from "../features/discounts/discountsService";
 
 type TicketDraft = EventTicketType & {
   remaining: number;
   soldOut: boolean;
   startsAt: string;
   endsAt: string;
-};
-
-type DiscountCode = {
-  id: string;
-  code: string;
-  percent: number;
 };
 
 const formatDateTime = (value: string) => {
@@ -69,7 +64,7 @@ export default function OrganizerEventTickets() {
   const event = useAppSelector((state) => selectAllEvents(state).find((item) => item.id === id));
   const [tickets, setTickets] = useState<TicketDraft[]>([]);
   const [editingTicket, setEditingTicket] = useState<TicketDraft | null>(null);
-  const [discounts, setDiscounts] = useState<DiscountCode[]>([]);
+  const [discounts, setDiscounts] = useState<DiscountItem[]>([]);
   const [discountCode, setDiscountCode] = useState("");
   const [discountPercent, setDiscountPercent] = useState(10);
   const [saving, setSaving] = useState(false);
@@ -82,13 +77,31 @@ export default function OrganizerEventTickets() {
   }, [dispatch, id]);
 
   useEffect(() => {
+    if (!id) return;
+    let active = true;
+
+    discountsService
+      .listForEvent(id)
+      .then((items) => {
+        if (active) setDiscounts(items);
+      })
+      .catch(() => {
+        /* discounts are optional; ignore load errors */
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  useEffect(() => {
     if (!event) return;
 
     const nextTickets = event.ticketTypes?.length
-      ? event.ticketTypes.map((ticketType, index) => ({
+      ? event.ticketTypes.map((ticketType) => ({
           ...ticketType,
-          remaining: Math.max(0, (event.availableTickets ?? 100) - index * 8),
-          soldOut: false,
+          remaining: ticketType.availableQuantity ?? event.availableTickets ?? 100,
+          soldOut: ticketType.soldOut ?? false,
           startsAt: toDatetimeLocal(new Date().toISOString()),
           endsAt: toDatetimeLocal(event.date),
         }))
@@ -115,10 +128,13 @@ export default function OrganizerEventTickets() {
         updateEvent({
           id,
           data: {
-            ticketTypes: nextTickets.map(({ id: ticketId, name, price }) => ({
-              id: ticketId,
-              name,
-              price,
+            ticketTypes: nextTickets.map((ticket) => ({
+              id: ticket.id,
+              name: ticket.name,
+              price: ticket.price,
+              availableQuantity: ticket.remaining,
+              description: ticket.description ?? "",
+              soldOut: ticket.soldOut,
             })),
             ticketPrice: nextTickets[0]?.price ?? event.ticketPrice,
             availableTickets: nextTickets.reduce((sum, ticket) => sum + (ticket.soldOut ? 0 : ticket.remaining), 0),
@@ -178,17 +194,39 @@ export default function OrganizerEventTickets() {
     await persistTickets(nextTickets);
   };
 
-  const addDiscount = () => {
+  const addDiscount = async () => {
+    if (!id) return;
     const code = discountCode.trim().toUpperCase();
     if (!code || discountPercent <= 0) {
       setMessage("Completeaza codul si procentul reducerii.");
       return;
     }
 
-    setDiscounts((current) => [...current, { id: crypto.randomUUID(), code, percent: discountPercent }]);
-    setDiscountCode("");
-    setDiscountPercent(10);
-    setMessage("Codul de reducere a fost adaugat local.");
+    try {
+      const created = await discountsService.create({
+        code,
+        discountType: "percent",
+        value: discountPercent,
+        eventId: id,
+        isActive: true,
+      });
+      setDiscounts((current) => [created, ...current]);
+      setDiscountCode("");
+      setDiscountPercent(10);
+      setMessage("Codul de reducere a fost adaugat.");
+    } catch {
+      setMessage("Nu am putut adauga codul de reducere.");
+    }
+  };
+
+  const removeDiscount = async (discountId: string) => {
+    try {
+      await discountsService.remove(discountId);
+      setDiscounts((current) => current.filter((discount) => discount.id !== discountId));
+      setMessage("Codul de reducere a fost sters.");
+    } catch {
+      setMessage("Nu am putut sterge codul de reducere.");
+    }
   };
 
   if (!event) {
@@ -344,9 +382,21 @@ export default function OrganizerEventTickets() {
               <p className="text-white/55">Nu ai adaugat inca niciun cod de reducere.</p>
             ) : (
               discounts.map((discount) => (
-                <div key={discount.id} className="flex max-w-xl items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white">
+                <div key={discount.id} className="flex max-w-xl items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white">
                   <span className="font-black">{discount.code}</span>
-                  <span className="font-semibold text-wine-300">-{discount.percent}%</span>
+                  <div className="flex items-center gap-4">
+                    <span className="font-semibold text-wine-300">
+                      {discount.discountType === "fixed" ? `-${discount.value} lei` : `-${discount.value}%`}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => void removeDiscount(discount.id)}
+                      className="rounded-lg p-1.5 text-white/60 transition hover:bg-white/10 hover:text-rose-300"
+                      aria-label={`Sterge codul ${discount.code}`}
+                    >
+                      <TrashIcon />
+                    </button>
+                  </div>
                 </div>
               ))
             )}
@@ -358,7 +408,7 @@ export default function OrganizerEventTickets() {
             <input value={discountCode} onChange={(e) => setDiscountCode(e.target.value)} placeholder="Cod" className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 font-semibold text-white outline-none placeholder:text-white/35 focus:border-wine-400" />
             <input type="number" min="1" max="100" value={discountPercent} onChange={(e) => setDiscountPercent(Number(e.target.value))} className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 font-semibold text-white outline-none focus:border-wine-400" />
           </div>
-          <button type="button" onClick={addDiscount} className="mt-4 w-full rounded-2xl bg-wine-600 px-6 py-3 text-lg font-black text-white shadow-glow transition hover:bg-wine-500">
+          <button type="button" onClick={() => void addDiscount()} className="mt-4 w-full rounded-2xl bg-wine-600 px-6 py-3 text-lg font-black text-white shadow-glow transition hover:bg-wine-500">
             + Adauga cod de reducere
           </button>
         </div>

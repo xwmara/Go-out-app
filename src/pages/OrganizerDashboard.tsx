@@ -202,16 +202,10 @@ export default function OrganizerDashboard() {
                       Publica
                     </button>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={(clickEvent) => {
-                        clickEvent.stopPropagation();
-                        void dispatch(setEventStatus({ id: event.id, status: "draft" }));
-                      }}
-                      className="btn-outline"
-                    >
-                      Draft
-                    </button>
+                    <span className="pill-live">
+                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                      Publicat
+                    </span>
                   )}
                 </div>
               </div>

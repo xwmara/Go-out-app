@@ -1,4 +1,7 @@
 import { Link } from "react-router-dom";
+import { useAppSelector } from "../../app/store/hook";
+import { selectCurrentUser } from "../../features/auth/authSelectors";
+import { resolveEventHref } from "../../features/events/eventNavigation";
 import type { EventItem } from "../../features/events/eventTypes";
 
 interface EventCardProps {
@@ -17,12 +20,15 @@ const formatDate = (value: string) =>
 
 /**
  * Premium, reusable event card with poster, meta and price.
- * Presentational only — links to the existing event details route.
+ * Presentational only — routes to public details, or to the organizer edit
+ * page when the current user owns the event.
  */
 export default function EventCard({ event, style, className = "" }: EventCardProps) {
+  const currentUser = useAppSelector(selectCurrentUser);
+
   return (
     <Link
-      to={`/events/${event.id}`}
+      to={resolveEventHref(event, currentUser)}
       style={style}
       className={`group card card-hover flex flex-col overflow-hidden ${className}`}
     >

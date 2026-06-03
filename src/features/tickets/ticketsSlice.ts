@@ -14,6 +14,7 @@ export interface TicketItem {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+  discountCode?: string | null;
   purchasedAt: string;
   ticketCode: string;
   qrCodeValue: string;
@@ -29,9 +30,11 @@ interface PurchaseTicketPayload {
   eventDate: string;
   eventCity: string;
   venueName: string;
+  ticketTypeId?: string;
   ticketTypeName: string;
   quantity: number;
   unitPrice: number;
+  discountCode?: string;
 }
 
 interface TicketsState {
@@ -75,9 +78,11 @@ export const purchaseTicket = createAsyncThunk<
   try {
     const { data } = await api.post<TicketItem>("/Tickets/purchase", {
       eventId: payload.eventId,
+      ticketTypeId: payload.ticketTypeId,
       ticketTypeName: payload.ticketTypeName,
       quantity: payload.quantity,
       unitPrice: payload.unitPrice,
+      discountCode: payload.discountCode,
     });
     return data;
   } catch (error) {

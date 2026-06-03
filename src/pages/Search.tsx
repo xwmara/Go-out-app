@@ -1,12 +1,15 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../app/store/hook";
+import { selectCurrentUser } from "../features/auth/authSelectors";
 import { selectPublishedEvents } from "../features/events/eventSelectors";
 import { fetchPublishedEvents } from "../features/events/eventsSlice";
+import { resolveEventHref } from "../features/events/eventNavigation";
 
 export default function Search() {
   const dispatch = useAppDispatch();
   const events = useAppSelector(selectPublishedEvents);
+  const currentUser = useAppSelector(selectCurrentUser);
   const [query, setQuery] = useState("");
   const [city, setCity] = useState("all");
 
@@ -44,7 +47,7 @@ export default function Search() {
         {filteredEvents.map((event, index) => (
           <Link
             key={event.id}
-            to={`/events/${event.id}`}
+            to={resolveEventHref(event, currentUser)}
             className="card card-hover animate-fade-up p-6"
             style={{ animationDelay: `${Math.min(index, 8) * 0.05}s` }}
           >

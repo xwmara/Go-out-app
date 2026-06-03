@@ -4,6 +4,9 @@ export interface EventTicketType {
   id: string;
   name: string;
   price: number;
+  availableQuantity?: number | null;
+  description?: string | null;
+  soldOut?: boolean;
 }
 
 export interface EventItem {
@@ -16,6 +19,8 @@ export interface EventItem {
   date: string;
   description: string;
   status: EventStatus;
+  wasPublished?: boolean;
+  publishedAt?: string | null;
   organizerId?: string;
   createdAt: string;
   ticketPrice?: number;
@@ -24,6 +29,13 @@ export interface EventItem {
   performers?: string[];
   ticketTypes?: EventTicketType[];
 }
+
+/** A ticket type is sold out when flagged manually or when its tracked stock reaches 0. */
+export const isTicketTypeSoldOut = (ticketType: EventTicketType): boolean =>
+  Boolean(ticketType.soldOut) ||
+  (ticketType.availableQuantity !== null &&
+    ticketType.availableQuantity !== undefined &&
+    ticketType.availableQuantity <= 0);
 
 export interface OrganizerEventSalesPoint {
   bucketStart: string;
