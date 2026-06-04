@@ -8,7 +8,6 @@ namespace Go_OutAppBackend.DTOs
         public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public decimal Price { get; set; }
-        // null = unlimited / not tracked per type (legacy events fall back to the event seat pool)
         public int? AvailableQuantity { get; set; }
         public string? Description { get; set; }
         public bool SoldOut { get; set; }

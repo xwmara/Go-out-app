@@ -99,7 +99,6 @@ namespace Go_OutAppBackend.Controllers
 
             var raw = eventEntity.ImageUrl;
 
-            // Stored as a base64 data URL ("data:<mime>;base64,<data>") -> decode and stream as a real image.
             if (raw.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
             {
                 var commaIndex = raw.IndexOf(',');
@@ -129,7 +128,6 @@ namespace Go_OutAppBackend.Controllers
                 return File(bytes, contentType);
             }
 
-            // Otherwise it's already a normal URL.
             return Redirect(raw);
         }
 
@@ -255,7 +253,6 @@ namespace Go_OutAppBackend.Controllers
                 return BadRequest(new { message = "Invalid status." });
             }
 
-            // Once an event has been published, it can no longer be moved back to draft.
             if (dto.Status == "draft" && eventEntity.PublishedAt != null)
             {
                 return BadRequest(new { message = "Evenimentul a fost deja publicat si nu mai poate reveni la draft. Il poti edita sau sterge." });
@@ -508,9 +505,6 @@ namespace Go_OutAppBackend.Controllers
             eventEntity.VenueAddress = dto.VenueAddress.Trim();
             eventEntity.Description = dto.Description.Trim();
 
-            // Only replace the stored poster when a new image is actually provided.
-            // A freshly uploaded image arrives as a base64 data URL; the edit form may instead
-            // send back the lightweight proxy URL, in which case we keep the existing image.
             var incomingImage = dto.ImageUrl?.Trim() ?? string.Empty;
             if (incomingImage.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
             {
@@ -559,8 +553,6 @@ namespace Go_OutAppBackend.Controllers
             };
         }
 
-        // Keep heavy base64 posters out of list/detail JSON: expose a lightweight, cacheable
-        // image URL that the browser can lazy-load instead. Plain URLs are returned as-is.
         private string? BuildImageUrl(Event eventEntity)
         {
             if (string.IsNullOrWhiteSpace(eventEntity.ImageUrl))

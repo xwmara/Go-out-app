@@ -20,7 +20,6 @@ namespace Go_OutAppBackend.Controllers
             _context = context;
         }
 
-        // Validate a discount code for a given event (used by clients in the purchase flow).
         [HttpPost("validate")]
         public async Task<ActionResult<ValidateDiscountResultDto>> Validate(ValidateDiscountDto dto)
         {
@@ -62,7 +61,6 @@ namespace Go_OutAppBackend.Controllers
             });
         }
 
-        // List discount codes for an event (organizer of that event, or admin).
         [HttpGet("event/{eventId:int}")]
         [Authorize(Roles = "organizer,admin")]
         public async Task<ActionResult<IEnumerable<DiscountDto>>> GetForEvent(int eventId)
@@ -87,7 +85,6 @@ namespace Go_OutAppBackend.Controllers
             return Ok(discounts.Select(MapDiscount));
         }
 
-        // Create a discount code (organizer of the linked event, or admin).
         [HttpPost]
         [Authorize(Roles = "organizer,admin")]
         public async Task<ActionResult<DiscountDto>> Create(CreateDiscountDto dto)
@@ -161,7 +158,6 @@ namespace Go_OutAppBackend.Controllers
             return Ok(MapDiscount(discount));
         }
 
-        // Delete a discount code (organizer of the linked event, or admin).
         [HttpDelete("{id:int}")]
         [Authorize(Roles = "organizer,admin")]
         public async Task<IActionResult> Delete(int id)

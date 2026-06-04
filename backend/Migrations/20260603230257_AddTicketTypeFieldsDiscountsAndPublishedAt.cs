@@ -60,8 +60,6 @@ namespace Go_OutAppBackend.Migrations
                 table: "Discounts",
                 column: "EventId");
 
-            // Backfill: events already published before this migration are treated as published,
-            // so they too cannot be reverted to draft.
             migrationBuilder.Sql("UPDATE [Events] SET [PublishedAt] = [CreatedAt] WHERE [Status] = 'published' AND [PublishedAt] IS NULL;");
         }
 

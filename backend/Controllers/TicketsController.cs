@@ -153,7 +153,6 @@ namespace Go_OutAppBackend.Controllers
                 return NotFound(new { message = "Event not found." });
             }
 
-            // Resolve the selected ticket type from the event's JSON definition (if any).
             var ticketTypes = DeserializeTicketTypes(eventEntity.TicketTypesJson);
             EventTicketTypeDto? selected = null;
             if (ticketTypes.Count > 0)
@@ -166,7 +165,6 @@ namespace Go_OutAppBackend.Controllers
             decimal unitPrice;
             if (selected != null)
             {
-                // Server-side sold-out / availability validation (cannot be bypassed by direct requests).
                 var soldOut = selected.SoldOut || (selected.AvailableQuantity.HasValue && selected.AvailableQuantity.Value <= 0);
                 if (soldOut)
                 {
@@ -178,12 +176,10 @@ namespace Go_OutAppBackend.Controllers
                     return BadRequest(new { message = "Nu mai sunt suficiente bilete disponibile pentru acest tip." });
                 }
 
-                // Authoritative price comes from the server, not from the client payload.
                 unitPrice = selected.Price;
             }
             else
             {
-                // Legacy single-price event: rely on the aggregate seat pool.
                 if (eventEntity.AvailableSeats < dto.Quantity)
                 {
                     return BadRequest(new { message = "Not enough tickets available." });
@@ -192,7 +188,6 @@ namespace Go_OutAppBackend.Controllers
                 unitPrice = eventEntity.Price > 0 ? eventEntity.Price : dto.UnitPrice;
             }
 
-            // Optional discount code, validated and applied server-side.
             string? appliedDiscountCode = null;
             var subtotal = unitPrice * dto.Quantity;
             var effectiveTotal = subtotal;
@@ -235,7 +230,6 @@ namespace Go_OutAppBackend.Controllers
                 PurchaseDate = DateTime.UtcNow
             };
 
-            // Decrement stock: per-type when tracked, plus the aggregate seat pool for overview continuity.
             if (selected != null && selected.AvailableQuantity.HasValue)
             {
                 selected.AvailableQuantity = Math.Max(0, selected.AvailableQuantity.Value - dto.Quantity);
