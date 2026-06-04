@@ -34,9 +34,12 @@ export default function EventCard({ event, style, className = "" }: EventCardPro
     >
       <div className="relative h-52 overflow-hidden sm:h-60">
         {event.imageUrl ? (
-          <div
-            className="h-full w-full bg-cover bg-center transition duration-700 group-hover:scale-105"
-            style={{ backgroundImage: `url(${event.imageUrl})` }}
+          <img
+            src={event.imageUrl}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-brand-gradient p-5 text-center font-display text-2xl font-black text-white">

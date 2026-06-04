@@ -18,8 +18,8 @@ export default function MarqueeBar({ items }: MarqueeBarProps) {
   ));
 
   return (
-    <section className="overflow-hidden border-y border-white/10 bg-ink-900/60 py-6">
-      <Marquee items={wordNodes} separator={<span className="text-3xl">✦</span>} />
+    <section className="border-y border-white/10 bg-ink-900/60 py-6">
+      <Marquee items={wordNodes} separator={<span className="text-3xl">✦</span>} showArrows />
     </section>
   );
 }

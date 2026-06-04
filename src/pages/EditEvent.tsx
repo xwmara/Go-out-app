@@ -19,9 +19,14 @@ export default function EditEvent() {
   const event = useAppSelector((state) => selectAllEvents(state).find((item) => item.id === id));
   const [title, setTitle] = useState(""); const [category, setCategory] = useState(""); const [city, setCity] = useState(""); const [venueName, setVenueName] = useState(""); const [venueAddress, setVenueAddress] = useState(""); const [date, setDate] = useState(""); const [description, setDescription] = useState(""); const [imageUrl, setImageUrl] = useState(""); const [performersInput, setPerformersInput] = useState(""); const [ticketTypes, setTicketTypes] = useState<EventTicketType[]>([createTicketType()]); const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const hydratedIdRef = useRef<string | null>(null);
+
   useEffect(() => { void dispatch(fetchOrganizerEvents()); }, [dispatch]);
   useEffect(() => {
     if (!event) return;
+    // Hydrate the form only once per event, so re-fetches don't wipe what the user is typing.
+    if (hydratedIdRef.current === event.id) return;
+    hydratedIdRef.current = event.id;
     setTitle(event.title); setCategory(event.category); setCity(event.city); setVenueName(event.venueName); setVenueAddress(event.venueAddress); setDate(event.date); setDescription(event.description); setImageUrl(event.imageUrl ?? ""); setPerformersInput(event.performers?.join(", ") ?? "");
     setTicketTypes(event.ticketTypes?.length ? event.ticketTypes : event.ticketPrice ? [{ id: crypto.randomUUID(), name: "General Access", price: event.ticketPrice }] : [createTicketType()]);
   }, [event]);
