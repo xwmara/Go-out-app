@@ -6,7 +6,6 @@ import type { EventItem } from "../../features/events/eventTypes";
 
 interface EventCardProps {
   event: EventItem;
-  /** Optional inline style (used for staggered animation delays). */
   style?: React.CSSProperties;
   className?: string;
 }
@@ -18,11 +17,6 @@ const formatDate = (value: string) =>
     year: "numeric",
   });
 
-/**
- * Premium, reusable event card with poster, meta and price.
- * Presentational only — routes to public details, or to the organizer edit
- * page when the current user owns the event.
- */
 export default function EventCard({ event, style, className = "" }: EventCardProps) {
   const currentUser = useAppSelector(selectCurrentUser);
 

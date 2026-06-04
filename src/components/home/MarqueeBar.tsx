@@ -1,13 +1,9 @@
 import Marquee from "../common/Marquee";
 
 interface MarqueeBarProps {
-  /** Keywords (categories, cities, vibes) pulled from real data. */
   items: string[];
 }
 
-/**
- * Bold scrolling keyword strip — the "brand voice" band between sections.
- */
 export default function MarqueeBar({ items }: MarqueeBarProps) {
   if (items.length === 0) return null;
 

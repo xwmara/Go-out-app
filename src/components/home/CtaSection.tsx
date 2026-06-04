@@ -1,9 +1,6 @@
 import { Link } from "react-router-dom";
 import Reveal from "../common/Reveal";
 
-/**
- * Closing call-to-action band with a premium gradient surface.
- */
 export default function CtaSection() {
   return (
     <Reveal>

@@ -7,10 +7,6 @@ interface RecapSectionProps {
   events: EventItem[];
 }
 
-/**
- * "Memories" strip — a cinematic, auto-scrolling gallery of real event posters.
- * Falls back gracefully when there is nothing to show.
- */
 export default function RecapSection({ events }: RecapSectionProps) {
   const withImages = events.filter((event) => event.imageUrl).slice(0, 8);
   if (withImages.length === 0) return null;

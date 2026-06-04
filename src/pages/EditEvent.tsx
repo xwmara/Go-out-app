@@ -24,7 +24,6 @@ export default function EditEvent() {
   useEffect(() => { void dispatch(fetchOrganizerEvents()); }, [dispatch]);
   useEffect(() => {
     if (!event) return;
-    // Hydrate the form only once per event, so re-fetches don't wipe what the user is typing.
     if (hydratedIdRef.current === event.id) return;
     hydratedIdRef.current = event.id;
     setTitle(event.title); setCategory(event.category); setCity(event.city); setVenueName(event.venueName); setVenueAddress(event.venueAddress); setDate(event.date); setDescription(event.description); setImageUrl(event.imageUrl ?? ""); setPerformersInput(event.performers?.join(", ") ?? "");

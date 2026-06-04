@@ -30,7 +30,6 @@ export interface EventItem {
   ticketTypes?: EventTicketType[];
 }
 
-/** A ticket type is sold out when flagged manually or when its tracked stock reaches 0. */
 export const isTicketTypeSoldOut = (ticketType: EventTicketType): boolean =>
   Boolean(ticketType.soldOut) ||
   (ticketType.availableQuantity !== null &&

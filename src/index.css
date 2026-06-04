@@ -42,7 +42,6 @@ button, input, select, textarea {
     color: #fff;
   }
 
-  /* Respect users who prefer reduced motion: disable looping/entrance animations */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -54,7 +53,6 @@ button, input, select, textarea {
     }
   }
 
-  /* Subtle custom scrollbar that matches the dark theme */
   * {
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
@@ -79,12 +77,10 @@ button, input, select, textarea {
     @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
   }
 
-  /* Small uppercase eyebrow label used across sections */
   .eyebrow {
     @apply text-xs font-semibold uppercase tracking-[0.28em] text-wine-300/80;
   }
 
-  /* Surface cards on the dark theme */
   .card {
     @apply rounded-3xl border border-white/10 bg-ink-850/80 shadow-card backdrop-blur-sm;
   }
@@ -93,7 +89,6 @@ button, input, select, textarea {
     @apply transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:shadow-elevated;
   }
 
-  /* Buttons */
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-wine-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950 disabled:cursor-not-allowed disabled:opacity-60;
   }
@@ -110,7 +105,6 @@ button, input, select, textarea {
     @apply btn text-slate-300 hover:bg-white/5 hover:text-white;
   }
 
-  /* Form controls */
   .field-label {
     @apply mb-2 block text-sm font-medium text-slate-300;
   }
@@ -119,7 +113,6 @@ button, input, select, textarea {
     @apply w-full rounded-xl border border-white/[0.12] bg-white/5 px-4 py-3 text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-wine-400/70 focus:ring-2 focus:ring-wine-500/20;
   }
 
-  /* Status pills */
   .pill {
     @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold;
   }
@@ -130,19 +123,16 @@ button, input, select, textarea {
     @apply pill bg-amber-400/[0.15] text-amber-300;
   }
 
-  /* Gradient text accent */
   .text-gradient {
     @apply bg-gradient-to-r from-wine-300 via-wine-400 to-wine-200 bg-clip-text text-transparent;
   }
 
-  /* Consistent vertical rhythm for stacked homepage sections */
   .section-stack {
     @apply space-y-16 sm:space-y-24;
   }
 }
 
 @layer utilities {
-  /* Fade the left/right edges of a marquee track into the background */
   .marquee-mask {
     -webkit-mask-image: linear-gradient(
       to right,

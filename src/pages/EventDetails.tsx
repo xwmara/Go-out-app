@@ -26,7 +26,6 @@ export default function EventDetails() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Discount code state
   const [discountInput, setDiscountInput] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState<ValidateDiscountResult | null>(null);
   const [discountError, setDiscountError] = useState("");
@@ -166,7 +165,6 @@ export default function EventDetails() {
               </div>
             </div>
 
-            {/* Ticket types overview with availability / sold-out badges */}
             {event.ticketTypes?.length ? (
               <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
                 <p className="eyebrow">Tipuri de bilete</p>
@@ -224,7 +222,6 @@ export default function EventDetails() {
               </select>
             </div>
 
-            {/* Discount code */}
             <div className="mt-4 space-y-2">
               <label className="block text-sm font-semibold text-slate-300">Cod de reducere</label>
               <div className="flex gap-2">

@@ -44,9 +44,6 @@ const benefits = [
   },
 ];
 
-/**
- * "Why us" value props — static brand copy presented in clean glass cards.
- */
 export default function BenefitsSection() {
   return (
     <section className="space-y-8">

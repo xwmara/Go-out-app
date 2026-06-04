@@ -4,14 +4,9 @@ interface HeroSectionProps {
   eventCount: number;
   cityCount: number;
   categoryCount: number;
-  /** Optional real poster used as a cinematic backdrop. */
   backgroundImage?: string;
 }
 
-/**
- * Large, cinematic hero with a strong central message and CTAs.
- * Data-driven stats keep it grounded in real backend content.
- */
 export default function HeroSection({
   eventCount,
   cityCount,
@@ -26,7 +21,6 @@ export default function HeroSection({
 
   return (
     <section className="relative -mt-2 overflow-hidden rounded-4xl border border-white/10 bg-ink-900 shadow-card sm:rounded-5xl">
-      {/* Cinematic backdrop from a real poster, heavily darkened for contrast */}
       {backgroundImage ? (
         <div
           className="absolute inset-0 scale-105 bg-cover bg-center opacity-30 blur-[2px]"

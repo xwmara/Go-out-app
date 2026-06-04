@@ -2,16 +2,11 @@ import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 
 interface MarqueeProps {
-  /** Items rendered repeatedly across the scrolling track. */
   items: ReactNode[];
-  /** Separator rendered between items. */
   separator?: ReactNode;
   className?: string;
-  /** Show prev/next arrow buttons for manual navigation. */
   showArrows?: boolean;
-  /** Auto-scroll the track (still respects prefers-reduced-motion). */
   autoScroll?: boolean;
-  /** Auto-scroll speed in pixels per frame. */
   speed?: number;
 }
 
@@ -23,13 +18,6 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
   );
 }
 
-/**
- * Seamless, never-empty marquee.
- * - Items are repeated enough to always fill the viewport, then duplicated so the
- *   loop wraps with no visible gap (resetting by exactly half a track is seamless).
- * - Auto-scrolls (paused on hover, disabled for prefers-reduced-motion).
- * - Optional arrow buttons let the user navigate manually.
- */
 export default function Marquee({
   items,
   separator,
@@ -41,14 +29,10 @@ export default function Marquee({
   const trackRef = useRef<HTMLDivElement | null>(null);
   const pausedRef = useRef(false);
 
-  // Repeat the items just enough to fill the viewport width, then render the
-  // resulting set twice so wrapping by half the scroll width is seamless.
-  // (Kept lean so heavy content like posters doesn't render too many nodes.)
   const repeats = items.length > 0 ? Math.max(1, Math.ceil(8 / items.length)) : 0;
   const oneSet = Array.from({ length: repeats }, () => items).flat();
   const loop = [...oneSet, ...oneSet];
 
-  // Keep the scroll position inside the first copy so content is always visible.
   const wrap = () => {
     const el = trackRef.current;
     if (!el) return;

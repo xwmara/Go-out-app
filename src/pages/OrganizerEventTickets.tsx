@@ -85,9 +85,7 @@ export default function OrganizerEventTickets() {
       .then((items) => {
         if (active) setDiscounts(items);
       })
-      .catch(() => {
-        /* discounts are optional; ignore load errors */
-      });
+      .catch(() => {});
 
     return () => {
       active = false;
@@ -267,7 +265,7 @@ export default function OrganizerEventTickets() {
 
       <section className="grid gap-7 xl:grid-cols-2">
         {tickets.map((ticket) => (
-          <article key={ticket.id} className="rounded-3xl border border-wine-600/60 bg-ink-900 p-5 shadow-card transition hover:border-wine-500">{/* ticket */}
+          <article key={ticket.id} className="rounded-3xl border border-wine-600/60 bg-ink-900 p-5 shadow-card transition hover:border-wine-500">
             <div className="flex items-start justify-between gap-5">
               <div>
                 <h4 className="text-2xl font-black leading-tight text-white">{ticket.name || "Tip bilet fara nume"}</h4>

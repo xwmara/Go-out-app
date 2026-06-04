@@ -12,10 +12,6 @@ interface FeaturedEventsProps {
   emptyMessage?: string;
 }
 
-/**
- * Reusable events showcase block (grid of premium cards with staggered reveal).
- * Used for both "featured" and "popular/recent" sections — pass different data + copy.
- */
 export default function FeaturedEvents({
   events,
   eyebrow,

@@ -1,4 +1,3 @@
-/** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
@@ -8,7 +7,6 @@ export default {
         display: ['Sora', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
-        // Dark, warm "nightlife" surfaces (rnbnites-inspired near-black with a wine tint)
         ink: {
           950: '#0a0610',
           900: '#0f0a14',
@@ -18,7 +16,6 @@ export default {
           700: '#2c2135',
           600: '#3a2c45',
         },
-        // Burgundy / maroon brand accent
         wine: {
           50: '#fdf2f5',
           100: '#fbe2ea',

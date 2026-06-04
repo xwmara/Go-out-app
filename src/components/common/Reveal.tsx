@@ -3,11 +3,8 @@ import type { ReactNode } from "react";
 
 interface RevealProps {
   children: ReactNode;
-  /** Extra classes applied to the wrapper. */
   className?: string;
-  /** Delay (ms) before the reveal transition starts — handy for staggering. */
   delay?: number;
-  /** Distance/direction the element travels in while fading in. */
   from?: "up" | "down" | "left" | "right" | "none";
 }
 
@@ -19,14 +16,8 @@ const hiddenTransform: Record<NonNullable<RevealProps["from"]>, string> = {
   none: "",
 };
 
-/**
- * Lightweight scroll-reveal wrapper built on IntersectionObserver.
- * Purely presentational — adds a fade/slide-in once the element enters the viewport.
- * Reuse it to animate any section or card without touching app logic.
- */
 export default function Reveal({ children, className = "", delay = 0, from = "up" }: RevealProps) {
   const ref = useRef<HTMLDivElement | null>(null);
-  // Start visible when IntersectionObserver is unavailable (e.g. SSR) so content never stays hidden.
   const [visible, setVisible] = useState(() => typeof IntersectionObserver === "undefined");
 
   useEffect(() => {
