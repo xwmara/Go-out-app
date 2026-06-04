@@ -84,6 +84,55 @@ namespace Go_OutAppBackend.Controllers
             return Ok(MapEvent(eventEntity));
         }
 
+        [HttpGet("{id:int}/image")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetEventImage(int id)
+        {
+            var eventEntity = await _context.Events
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (eventEntity is null || string.IsNullOrWhiteSpace(eventEntity.ImageUrl))
+            {
+                return NotFound();
+            }
+
+            var raw = eventEntity.ImageUrl;
+
+            // Stored as a base64 data URL ("data:<mime>;base64,<data>") -> decode and stream as a real image.
+            if (raw.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+            {
+                var commaIndex = raw.IndexOf(',');
+                if (commaIndex < 0)
+                {
+                    return NotFound();
+                }
+
+                var meta = raw.Substring(5, commaIndex - 5);
+                var contentType = meta.Split(';')[0];
+                if (string.IsNullOrWhiteSpace(contentType))
+                {
+                    contentType = "image/jpeg";
+                }
+
+                byte[] bytes;
+                try
+                {
+                    bytes = Convert.FromBase64String(raw[(commaIndex + 1)..]);
+                }
+                catch
+                {
+                    return NotFound();
+                }
+
+                Response.Headers.CacheControl = "public, max-age=3600";
+                return File(bytes, contentType);
+            }
+
+            // Otherwise it's already a normal URL.
+            return Redirect(raw);
+        }
+
         [HttpGet("{id:int}/overview")]
         [Authorize(Roles = "organizer,admin")]
         public async Task<ActionResult<OrganizerEventOverviewDto>> GetOrganizerOverview(int id)
@@ -458,7 +507,19 @@ namespace Go_OutAppBackend.Controllers
             eventEntity.VenueName = dto.VenueName.Trim();
             eventEntity.VenueAddress = dto.VenueAddress.Trim();
             eventEntity.Description = dto.Description.Trim();
-            eventEntity.ImageUrl = dto.ImageUrl?.Trim() ?? string.Empty;
+
+            // Only replace the stored poster when a new image is actually provided.
+            // A freshly uploaded image arrives as a base64 data URL; the edit form may instead
+            // send back the lightweight proxy URL, in which case we keep the existing image.
+            var incomingImage = dto.ImageUrl?.Trim() ?? string.Empty;
+            if (incomingImage.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+            {
+                eventEntity.ImageUrl = incomingImage;
+            }
+            else if (string.IsNullOrEmpty(eventEntity.ImageUrl) && !string.IsNullOrEmpty(incomingImage))
+            {
+                eventEntity.ImageUrl = incomingImage;
+            }
             eventEntity.Date = DateTime.TryParse(dto.Date, out var parsedDate) ? parsedDate : DateTime.UtcNow;
             eventEntity.PerformersJson = JsonSerializer.Serialize(dto.Performers ?? new List<string>(), JsonOptions);
             eventEntity.TicketTypesJson = JsonSerializer.Serialize(ticketTypes, JsonOptions);
@@ -492,10 +553,27 @@ namespace Go_OutAppBackend.Controllers
                 CreatedAt = eventEntity.CreatedAt.ToString("O"),
                 TicketPrice = eventEntity.Price,
                 AvailableTickets = eventEntity.AvailableSeats,
-                ImageUrl = string.IsNullOrWhiteSpace(eventEntity.ImageUrl) ? null : eventEntity.ImageUrl,
+                ImageUrl = BuildImageUrl(eventEntity),
                 Performers = performers,
                 TicketTypes = ticketTypes.Count > 0 ? ticketTypes : null
             };
+        }
+
+        // Keep heavy base64 posters out of list/detail JSON: expose a lightweight, cacheable
+        // image URL that the browser can lazy-load instead. Plain URLs are returned as-is.
+        private string? BuildImageUrl(Event eventEntity)
+        {
+            if (string.IsNullOrWhiteSpace(eventEntity.ImageUrl))
+            {
+                return null;
+            }
+
+            if (eventEntity.ImageUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+            {
+                return $"{Request.Scheme}://{Request.Host}/api/Events/{eventEntity.Id}/image";
+            }
+
+            return eventEntity.ImageUrl;
         }
 
         private static List<T> DeserializeList<T>(string? json)
