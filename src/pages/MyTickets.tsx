@@ -32,11 +32,11 @@ export default function MyTickets() {
         responseType: "blob",
       });
 
-      const blob = new Blob([response.data], { type: response.headers["content-type"] ?? "text/html" });
+      const blob = new Blob([response.data], { type: response.headers["content-type"] ?? "application/pdf" });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${ticket.invoiceNumber}.html`;
+      link.download = `${ticket.invoiceNumber}.pdf`;
       document.body.appendChild(link);
       link.click();
       link.remove();
