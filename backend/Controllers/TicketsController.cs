@@ -1,9 +1,11 @@
 using Go_OutAppBackend.Data;
 using Go_OutAppBackend.DTOs;
 using Go_OutAppBackend.Models;
+using Go_OutAppBackend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -16,11 +18,13 @@ namespace Go_OutAppBackend.Controllers
     public class TicketsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
         private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-        public TicketsController(ApplicationDbContext context)
+        public TicketsController(ApplicationDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         [HttpGet("me")]
@@ -85,47 +89,9 @@ namespace Go_OutAppBackend.Controllers
             }
 
             var invoiceNumber = BuildInvoiceNumber(ticket);
-            var ticketCode = BuildTicketCode(ticket);
-            var total = ticket.UnitPrice * ticket.Quantity;
-            var issueDate = ticket.PurchaseDate.ToString("dd.MM.yyyy HH:mm");
-            var eventDate = ticket.Event.Date.ToString("dd.MM.yyyy HH:mm");
+            var pdf = InvoicePdfGenerator.Generate(ticket, invoiceNumber, BuildTicketCode(ticket));
 
-            var html = $@"<!doctype html>
-<html lang=""ro"">
-<head>
-  <meta charset=""utf-8"" />
-  <title>{invoiceNumber}</title>
-  <style>
-    body {{ font-family: Arial, sans-serif; margin: 40px; color: #0f172a; }}
-    .card {{ border: 1px solid #e2e8f0; border-radius: 18px; padding: 24px; }}
-    .muted {{ color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 0.18em; }}
-    h1, h2 {{ margin: 0 0 12px; }}
-    .row {{ display: flex; justify-content: space-between; gap: 24px; margin: 10px 0; }}
-    .total {{ font-size: 22px; font-weight: 700; }}
-  </style>
-</head>
-<body>
-  <div class=""card"">
-    <p class=""muted"">Factura Go-Out App</p>
-    <h1>{invoiceNumber}</h1>
-    <div class=""row""><span>Client</span><strong>{System.Net.WebUtility.HtmlEncode(ticket.User.FullName)}</strong></div>
-    <div class=""row""><span>Email</span><strong>{System.Net.WebUtility.HtmlEncode(ticket.User.Email)}</strong></div>
-    <div class=""row""><span>Data emitere</span><strong>{issueDate}</strong></div>
-    <hr />
-    <h2>{System.Net.WebUtility.HtmlEncode(ticket.Event.Title)}</h2>
-    <div class=""row""><span>Locatie</span><strong>{System.Net.WebUtility.HtmlEncode(ticket.Event.City)}, {System.Net.WebUtility.HtmlEncode(ticket.Event.VenueName)}</strong></div>
-    <div class=""row""><span>Data eveniment</span><strong>{eventDate}</strong></div>
-    <div class=""row""><span>Tip bilet</span><strong>{System.Net.WebUtility.HtmlEncode(ticket.TicketTypeName)}</strong></div>
-    <div class=""row""><span>Cantitate</span><strong>{ticket.Quantity}</strong></div>
-    <div class=""row""><span>Pret unitar</span><strong>{ticket.UnitPrice:0.##} lei</strong></div>
-    <div class=""row total""><span>Total</span><strong>{total:0.##} lei</strong></div>
-    <hr />
-    <div class=""row""><span>Cod bilet</span><strong>{ticketCode}</strong></div>
-  </div>
-</body>
-</html>";
-
-            return File(Encoding.UTF8.GetBytes(html), "text/html", $"{invoiceNumber}.html");
+            return File(pdf, "application/pdf", $"{invoiceNumber}.pdf");
         }
 
         [HttpPost("purchase")]
@@ -247,7 +213,58 @@ namespace Go_OutAppBackend.Controllers
             await _context.SaveChangesAsync();
 
             await _context.Entry(ticket).Reference(t => t.Event).LoadAsync();
+            await _context.Entry(ticket).Reference(t => t.User).LoadAsync();
+
+            try
+            {
+                var invoiceNumber = BuildInvoiceNumber(ticket);
+                var invoicePdf = InvoicePdfGenerator.Generate(ticket, invoiceNumber, BuildTicketCode(ticket));
+                await EmailSender.TrySendAsync(
+                    _configuration,
+                    ticket.User.Email,
+                    $"Biletul tau pentru {ticket.Event.Title}",
+                    BuildPurchaseEmailBody(ticket),
+                    $"factura-{invoiceNumber}.pdf",
+                    invoicePdf,
+                    "application/pdf");
+            }
+            catch
+            {
+            }
+
             return Ok(MapTicket(ticket));
+        }
+
+        private static string BuildPurchaseEmailBody(Ticket ticket)
+        {
+            var ticketCode = BuildTicketCode(ticket);
+            var qrCodeValue = BuildQrCodeValue(ticket);
+            var qrCodeUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=280x280&data={Uri.EscapeDataString(qrCodeValue)}";
+            var total = ticket.UnitPrice * ticket.Quantity;
+            var eventDate = ticket.Event.Date.ToString("dd.MM.yyyy HH:mm");
+
+            return $@"<!doctype html>
+<html lang=""ro"">
+  <body style=""margin:0;padding:24px;background:#f5f5f7;font-family:Arial,sans-serif;color:#111827;"">
+    <div style=""max-width:620px;margin:0 auto;background:#ffffff;border-radius:16px;padding:28px;border:1px solid #e5e7eb;"">
+      <p style=""margin:0 0 10px;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:#b71e4c;font-weight:700;"">Go-Out App - bilet confirmat</p>
+      <h1 style=""margin:0 0 16px;font-size:26px;line-height:1.2;"">{WebUtility.HtmlEncode(ticket.Event.Title)}</h1>
+      <p style=""margin:0 0 18px;font-size:16px;line-height:1.6;"">Buna, {WebUtility.HtmlEncode(ticket.User.FullName)}! Biletul tau a fost confirmat. Prezinta codul QR de mai jos la intrare.</p>
+      <div style=""background:#f9fafb;border-radius:12px;padding:16px;margin:0 0 20px;"">
+        <p style=""margin:0 0 8px;""><strong>Data:</strong> {eventDate}</p>
+        <p style=""margin:0 0 8px;""><strong>Locatie:</strong> {WebUtility.HtmlEncode(ticket.Event.City)}, {WebUtility.HtmlEncode(ticket.Event.VenueName)}</p>
+        <p style=""margin:0 0 8px;""><strong>Tip bilet:</strong> {WebUtility.HtmlEncode(ticket.TicketTypeName)}</p>
+        <p style=""margin:0 0 8px;""><strong>Cantitate:</strong> {ticket.Quantity}</p>
+        <p style=""margin:0 0 8px;""><strong>Total:</strong> {total:0.##} lei</p>
+        <p style=""margin:0;""><strong>Cod bilet:</strong> {ticketCode}</p>
+      </div>
+      <div style=""text-align:center;margin:0 0 20px;"">
+        <img src=""{qrCodeUrl}"" alt=""Cod QR bilet"" width=""240"" height=""240"" style=""border-radius:12px;background:#ffffff;"" />
+      </div>
+      <p style=""margin:0;font-size:14px;line-height:1.6;color:#4b5563;"">Factura este atasata acestui email. Te asteptam la eveniment!</p>
+    </div>
+  </body>
+</html>";
         }
 
         private static List<EventTicketTypeDto> DeserializeTicketTypes(string? json)
