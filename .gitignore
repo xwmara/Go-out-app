@@ -1,3 +1,23 @@
+# Local-only notes (never commit)
+CLAUDE.md
+.claude/
+AUDIT.md
+
+# Secrets: keep them in dotnet user-secrets or environment variables.
+# Commit *.example files instead.
+appsettings.Development.json
+.env
+.env.*
+!.env.example
+
+# Build output and dependencies
+bin/
+obj/
+node_modules/
+dist/
+dist-ssr/
+*.local
+
 # Logs
 logs
 *.log
@@ -7,18 +27,14 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
+.vs/
 .DS_Store
 *.suo
+*.user
 *.ntvs*
 *.njsproj
-*.sln
 *.sw?
