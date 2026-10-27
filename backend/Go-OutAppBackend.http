@@ -1,0 +1,6 @@
+@Go_OutAppBackend_HostAddress = http://localhost:5029
+
+GET {{Go_OutAppBackend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
